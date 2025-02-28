@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::head}"></head>
+
+<head>
+    <style>
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+
+        .order-status-card {
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #32fab1;
+        }
+    </style>
+    <script src="https://kit.fontawesome.com/b982f6e503.js" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5.2.0/dist/css/coreui.min.css" rel="stylesheet" integrity="sha384-u3h5SFn5baVOWbh8UkOrAaLXttgSF0vXI15ODtCSxl0v/VKivnCN6iHCcvlyTL7L" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5.2.0/dist/js/coreui.bundle.min.js" integrity="sha384-JdRP5GRWP6APhoVS1OM/pOKMWe7q9q8hpl+J2nhCfVJKoS+yzGtELC5REIYKrymn" crossorigin="anonymous"></script>
+</head>
+
+<body class="bg-light">
+    <div th:replace="~{fragments::optional}"></div>
+    <div th:replace="~{fragments::main-top}"></div>
+    <header th:replace="~{fragments::main-header}"></header>
+
+    <div class="mt-3 container">
+        <h3 class="text-center font-weight-bold mb-5 mt-5 text-primary">Order Tracking</h3>
+
+        <div class="col-md-8 card offset-md-2 mb-3">
+            <div class="card-body">
+                <form th:action="@{/trackOrder}" method="get">
+                    <div class="form-group mt-3">
+                        <!-- <label class="font-weight-bold text-dark text-muted">Enter Order ID</label> -->
+                        <input type="text" placeholder="Enter Order ID" name="orderId" required>
+                    </div>
+                    <div class="form-group">
+                        <!-- <label class="font-weight-bold text-dark text-muted">Enter Mobile Number</label> -->
+                        <input type="text" placeholder="Enter Mobile Number" name="phoneNumber" required>
+                    </div>
+                    <button class="ml-3 btn btn-primary" type="submit">TRACK ORDER</button>
+                </form>
+
+                <div class="mt-4 text-danger font-weight-bold" th:if="${status}" th:text="${status}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Display -->
+    <div class="p-5 card-body container" th:if="${order != null}">
+        <article class="card">
+            <div class="card-body row text-center">
+                <div class="col"> <strong>Order ID:</strong><br><span th:text="${order.id}"></span></div>
+                <div class="col"> <strong>Order placed on:</strong> <br> <span th:text="${order.orderDate}"></span> </div>
+                <div class="col"> <strong>Status:</strong> <br>
+                    <span th:text="${order.orderStatus}" id="orderStatus"></span>
+                </div>
+            </div>
+        </article>
+
+        <div class="display-order-status-mark" id="display-order-status-mark"></div>
+
+        <!-- Order Cancelled -->
+        <div class="mt-4 text-danger font-weight-bold text-center" th:if="${order.orderStatus == 'CANCELLED'}">
+            <i class="fa-solid fa-ban"></i> Order Cancelled
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments::footer}"></footer>
+
+<script>
+    $(document).ready(function () {
+        var statusArr = ['PENDING', 'CONFIRMED', 'ASSIGNED', 'SHIPPED', 'DELIVERED'];
+        var currentStatus = $("#orderStatus").text().trim();
+        var statusContainer = $("#display-order-status-mark");
+
+        var statusHtml = '<div class="row justify-content-center">';
+        for (var i = 0; i < statusArr.length; i++) {
+            var status = statusArr[i];
+            var isChecked = statusArr.indexOf(currentStatus) >= i; // Check if status is reached
+            var icon = isChecked ? '<i class="fa-solid fa-check-circle text-success"></i>' : '<i class="fa-regular fa-circle text-secondary"></i>';
+            
+            statusHtml += `<div class="col-md-2 mt-5 text-center">
+                    ${icon}
+                    <br>
+                    <small class="font-weight-bold">${status}
+                        
+                    </small>
+                </div>`;
+        }
+        statusHtml += '</div>';
+
+        statusContainer.html(statusHtml);
+    });
+</script>
+
+</body>
+
+</html>

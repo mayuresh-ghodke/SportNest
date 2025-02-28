@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::head}"></head>
+
+<head>
+    <style>
+        .contact-section {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+        }
+
+        .contact-section h3 {
+            color: #007bff;
+        }
+
+        .img-box {
+
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 50px;
+            border: none;
+        }
+
+        .img-box::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(70%);
+        }
+
+        .category-name {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature {
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feature h4 {
+            color: #007bff;
+        }
+        .feature p {
+            color: #333;
+        }
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div th:replace="~{fragments::optional}"></div>
+    <div th:replace="~{fragments::main-top}"></div>
+    <div th:replace="~{fragments::main-header}"></div>
+
+    <!-- Container to hold the image and navbar -->
+    <div class="position-relative">
+        <!-- Image -->
+        <div style="position: relative; width: 100%;">
+            <img th:src="@{images/football-bg.jpg}" style="width: 100%;height: 450px;">
+            <!-- Text positioned on the left side of the image -->
+            <div style="position: absolute; top: 0; left: 0; padding: 20px; color: white;">
+                <div class="row pt-5 pl-5">
+                    <h1 class=" font-weight-bold mt-5">Shop for Sports Gear!</h1>
+                </div>
+                <div class="row p-5">
+                    <h3 class="font-weight-bold">Find everything you need for your favorite sports!
+                        <br>Shop high-quality authentic products from leading sports <br>brands.
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row p-5">
+            <div class="col-md-12">
+                <h1 class="font-weight-bold text-center">
+                    Gear up for Victory! Explore our Selection of Sports Equipment
+                </h1>
+            </div>
+        </div>
+        <div class="row mt-3 p-3">
+            <div class="col-md-7">
+                <img src="images/bg-football.jpg" width="100%" height="600vh">
+            </div>
+            <div class="col-md-5">
+                <h5>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Omnis porro quos voluptatum soluta atque exercitationem, aut, mollitia, perspiciatis laboriosam provident pariatur! Ab soluta eum itaque, qui iusto impedit error officiis?</h5>
+                <a th:href="@{/menu}">
+                    <button class="btn btn-lg btn-outline-primary mt-3 mb-3">Shop Now</button>
+                </a>
+                <img src="images/cricket.jpg" class="mt-4" width="100%" >
+            </div>
+        </div>
+    </div>
+
+    <!-- Start About Page  -->
+    <div class="bg-light py-5">
+        <div class="container" style="font-family: 'Times New Roman', Times, serif;">
+            <div class="text-center">
+                <h1 class="font-weight-bold mb-4">Why Choose Us?</h1>
+                <hr class="w-25 mx-auto mb-4">
+            </div>
+            <div class="row text-center">
+                <div class="col-12 col-md-4 mb-4">
+                    <div class="feature-box p-4 bg-white shadow-sm rounded">
+                        <img src="images/free-shipping.jpg" class="img-fluid mb-3 rounded" alt="Free Shipping">
+                        <h4 class="font-weight-bold mb-3">Free Shipping</h4>
+                        <ul class="list-unstyled text-left">
+                            <li>Enjoy Free Shipping on All Orders – No minimum required!</li>
+                            <li>Shop for essentials or special treats without any additional cost.</li>
+                            <li>We deliver your items straight to your door with no extra charges.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 mb-4">
+                    <div class="feature-box p-4 bg-white shadow-sm rounded">
+                        <img src="images/secure-payments.jpg" class="img-fluid mb-3 rounded" alt="Secure Payments">
+                        <h4 class="font-weight-bold mb-3">Secure Payments</h4>
+                        <ul class="list-unstyled text-left">
+                            <li>Shop with Peace of Mind – Secure Payments Guaranteed!</li>
+                            <li>Advanced encryption technologies keep your payment information safe.</li>
+                            <li>A range of trusted payment options to suit your preference.</li>
+                            <li>Your privacy and safety are always our priority.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 mb-4">
+                    <div class="feature-box p-4 bg-white shadow-sm rounded">
+                        <img src="images/order-tracking.jpg" class="img-fluid mb-3 rounded" alt="Order Tracking">
+                        <h4 class="font-weight-bold mb-3">Order Tracking</h4>
+                        <ul class="list-unstyled text-left">
+                            <li>Track Your Orders with Ease!</li>
+                            <li>Receive a unique tracking number once your order is placed.</li>
+                            <li>Monitor the journey of your package from our warehouse to your doorstep.</li>
+                            <li>Get real-time updates and estimated delivery times directly on our website.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .feature-box {
+            border: 1px solid #e0e0e0;
+        }
+        .feature-box h4 {
+            color: #007bff;
+        }
+        .feature-box ul li {
+            color: #333;
+        }
+        .feature-box:hover{
+            background-color: gray;
+        }
+    </style>
+    <div class="container my-5">
+        <hr class="my-4">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h1 class="font-weight-bold mb-3">Unleash Your Potential with High-Quality Sport Equipment</h1>
+                <p class="lead mb-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor ex dolore in perspiciatis. Ipsum eligendi doloremque accusamus ut quibusdam, modi tempora, iust.</p>
+            </div>
+        </div>
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="feature">
+                    <h4 class="font-weight-bold">Durable</h4>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                </div>
+                <div class="feature mt-4">
+                    <h4 class="font-weight-bold">Performance Enhancing</h4>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                </div>
+                <div class="feature mt-4">
+                    <h4 class="font-weight-bold">Premium Quality</h4>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <img src="images/middle-home.jpg" class="img-fluid rounded shadow-sm" alt="Sport Equipment">
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature">
+                    <h4 class="font-weight-bold">Versatile Equipment</h4>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                </div>
+                <div class="feature mt-4">
+                    <h4 class="font-weight-bold">Safety</h4>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                </div>
+                <div class="feature mt-4">
+                    <h4 class="font-weight-bold">Comfortable Designs</h4>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div th:replace="~{fragments::footer}"></div>
+    </footer>
+</body>
+</html>

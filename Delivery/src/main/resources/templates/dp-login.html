@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::header}"></head>
+
+<head>
+    <style>
+        body {
+            background-color: #007bff;
+        }
+
+        .login-card {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        h3 {
+            color: #343a40;
+            font-weight: bold;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body class="bg-primary">
+    <div class="container p-5">
+        <!-- Outer Row -->
+        <div class="row mt-5">
+            <!-- Here is login for Delivery Person -->
+            <div class="col-md-6 justify-content-right">
+                <div class="card login-card" th:fragment="dp-login">
+                    <div class="card-body p-0">
+                        <!-- Nested Row within Card Body -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h3 class=" mb-4">DELIVERY PERSON LOGIN</h3>
+                                    </div>
+                                    <div th:if="${param.error}" class="alert alert-danger">
+                                        Invalid username or password.
+                                    </div>
+                                    
+                                    <form th:action="@{/delivery/do-login-delivery-person}" method="post">
+                                        <div class="form-group">
+                                            <input type="email" name="username" class="form-control" placeholder="Enter Email Address...">
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" name="password" class="form-control" placeholder="Password">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-block">
+                                            LOGIN <i class="fa-solid fa-right-to-bracket"></i>
+                                        </button>
+                                        <button type="reset" class="mt-2 btn btn-outline-primary btn-block">
+                                            CLEAR 
+                                        </button>
+                                        <hr>
+                                    </form>
+                                    
+                                    <hr>
+                                    <div class="text-center">
+                                        <a th:href="@{/forgot-password}" href="forgot-password.html">Forgot Password
+                                            ?</a>
+                                    </div>
+                                    <div class="text-center">
+                                        <a th:href="@{/dp-register}" href="register.html">Create an Account</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::header}"></head>
+
+<head>
+    <title>View Orders</title>
+    <!-- Include jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+	integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+	crossorigin="anonymous"></script>
+</head>
+
+<body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div th:replace="~{fragments::sidebar}"></div>
+                <div class="col-md-10  mt-4">
+                    <!-- Main Content -->
+                    <div id="content">
+                        <div class="mt-2 card p-3 d-flex">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <button id="generatePdf" class="btn btn-outline-primary">Export To PDF</button>
+                                </div>
+                                <div class="col-md-2">
+                                    <button id="generateExcel" class="btn btn-outline-success">Export To Excel</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Begin Page Content -->
+                        <div th:if="${success}" class="text-center alert alert-success">
+                            <p th:text="${success}">
+                            </p>
+                        </div>
+                        <div class="mt-3 card">
+                            <table class="table w-100" id="ordersTable">
+                                <thead class="bg-white text-muted">
+                                    <tr>
+                                        <th>O-ID</th>
+                                        <th>Customer</th>
+                                        <th>Ordered Date</th>
+                                        <th>Status</th>
+                                        <th>Price</th>
+                                        <th>Payment Status</th>
+                                        <th>Delivery Person</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white">
+                                    <tr th:each="order : ${orders}">
+                                        <td>
+                                            <strong class="text-dark">[(${order.id})]</strong>
+                                        </td>
+                                        <td>
+                                            <span>[(${order.customer.firstName})]
+                                                [(${order.customer.lastName})]</span>
+                                        </td>
+                                        <td>
+                                            <span>[(${order.orderDate})]</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success text-white" th:if="${order.isDelivered==true}"
+                                                th:text="${order.orderStatus}"></span>
+                                            <span class="badge bg-info"
+                                                th:if="${order.accept == false && order.isDelivered==false}"
+                                                th:text="${order.orderStatus}"></span>
+                                            <span class="badge bg-primary"
+                                                th:if="${order.accept == true && order.isDelivered==false}"
+                                                th:text="${order.orderStatus}"></span>
+                                            <span class="badge bg-warning" th:if="${order.accept == false}"
+                                                th:text="${order.orderStatus}"></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <strong class="text-dark">₹ [(${order.totalPrice})]</strong>
+                                        </td>
+                                        <td class="text-center"><span
+                                                class="badge bg-success text-white">[(${order.status})]</span>
+                                        </td>
+                                        <td>
+                                            <div th:if="${order.deliveryPerson != null}">
+                                                <span th:text="${order.deliveryPerson.firstName + ' ' + order.deliveryPerson.lastName}"></span><br>
+                                                <span th:text="${order.deliveryPerson.phoneNumber}"></span>
+                                            </div>
+                                            <form th:if="${order.deliveryPerson == null}" th:action="@{/assign-delivery-person/{id}(id=${order.id})}" method="get">
+                                                <select id="delivery_person" name="delivery_person" class="form-control">
+                                                    <option value="">-SELECT-</option>
+                                                    <option th:each="dp : ${deliveryPersons}" th:if="${dp.isAvailable == true}" 
+                                                        th:value="${dp.id}" th:text="${dp.firstName + ' ' + dp.lastName}" class="form-control">
+                                                    </option>
+                                                </select>
+                                                <button type="submit" class="btn btn-block mt-2" 
+                                                    style="border:1px solid black; border-radius: 10px;">Assign</button>
+                                            </form>
+                                        </td>
+                                        
+                                        <td>
+                                            <button><a th:href="@{/view-order/{id}(id = ${order.id})}"
+                                                class="btn
+                                                ">View</a></button>
+                                            <a th:if="${order.accept} != false"
+                                                th:href="@{/cancel-order(id = ${order.id})}"
+                                                class="btn btn-primary">Cancel</a>
+                                            <a th:if="${order.accept} == false"
+                                                th:href="@{/accept-order(id = ${order.id})}"
+                                                class=" btn btn-secondary">Accept</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+	integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+	crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#generateInvoiceButton').click(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: '/admin/generate-invoice-report', // URL of the controller endpoint
+                    success: function (response) {
+                        // Handle success, for example, display a success message
+                        alert('Invoice report generated successfully');
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error, for example, display an error message
+                        alert('Error generating invoice report: ' + error);
+                    }
+                });
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::header}"></head>
+
+<head>
+    <!-- Include jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</head>
+
+<body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <div th:replace="~{fragments::sidebar}"></div>
+                <div class="col-md-10 mt-4 pl-5">
+                    <!-- Top Section: Order ID, Status, and Export Buttons -->
+                    <div class="mt-2 card p-3 d-flex">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h4 class="font-weight-bold">Order ID: <span th:text="${order.id}"></span></h4>
+                                <div class="mt-2">
+                                    <span class="badge bg-success text-white" th:text="${order.status}"></span>
+                                    <span class="badge bg-warning text-dark" th:text="${order.orderStatus}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <button id="generatePdf" class="btn btn-outline-primary me-2">Export To PDF</button>
+                                <button id="generateExcel" class="btn btn-outline-success">Export To Excel</button>
+                                <a style="text-decoration: none; cursor: pointer;">
+                                    <span class="text-muted"><i class="fa-solid fa-print"></i>&nbsp;Print Order</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content: Order Details & Customer Information -->
+                    <div class="row d-flex p-3">
+                        <!-- Left Section: Order Details -->
+                        <div class="col-md-8 mt-3 p-3 card rounded">
+                            <p class="font-weight-bold text-muted">Order Details</p>
+                            <table class="table table-responsive">
+                                <tbody>
+                                    <tr th:each="entry : ${hMapData}">
+                                        <td><span th:text="${entry.key.name}"></span></td>
+                                        <td>₹<span th:text="${entry.key.costPrice}"></span></td>
+                                        <td><span th:text="${entry.value}"></span></td>
+                                        <td class="text-right">₹ <span
+                                                th:text="${entry.key.costPrice * entry.value}"></span></td>
+                                    </tr>
+                                    <tr class="font-weight-bold">
+                                        <td colspan="3" class="text-right">Total Items:</td>
+                                        <td class="text-right"><span th:text="${totalItemCount}"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right">Subtotal:</td>
+                                        <td class="text-right">₹<span th:text="${order.totalPrice}"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right">Shipping Fee:</td>
+                                        <td class="text-right">₹<span>Free</span></td>
+                                    </tr>
+                                    <tr class="font-weight-bold">
+                                        <td colspan="3" class="text-right">Grand Total:</td>
+                                        <td class="text-right">₹<span th:text="${order.totalPrice}"></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Right Section: Customer & Shipping Details -->
+                        <div class="col-md-3 mt-3 ml-5 p-3 card shadow-sm rounded border-left">
+                            <p class="font-weight-bold text-secondary">Customer Details</p>
+                            <p><i class="fas fa-user text-info"></i> <span class="font-weight-bold text-dark"
+                                    th:text="${customer.firstName +' '+ customer.lastName}"></span></p>
+                            <p><i class="fas fa-phone text-success"></i> <span class="text-dark"
+                                    th:text="${customer.phoneNumber}"></span></p>
+                            <p><i class="fas fa-envelope text-success"></i> <span class="text-dark"
+                                    th:text="${customer.username}"></span></p>
+                            <hr>
+                            <p class="font-weight-bold text-secondary">Shipping Details</p>
+                            <p><i class="fas fa-phone text-success"></i> <span class="text-dark"
+                                    th:text="${customer.phoneNumber}"></span></p>
+                            <p><i class="fas fa-envelope text-success"></i> <span class="text-dark"
+                                    th:text="${customer.username}"></span></p>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Person Section -->
+<div class="row d-flex p-3">
+    <!-- Delivery Person Card -->
+    <div class="col-md-8 mt-3 p-4 card rounded border-1">
+        <h5 class="font-weight-bold text-primary mb-3">
+            <i class="fas fa-truck text-danger"></i> Delivery Person
+        </h5>
+        <p class="d-flex align-items-center">
+            <i class="fas fa-user text-info fa-lg"></i>
+            <span class="ml-2 font-weight-bold text-dark" th:text="${deliveryPerson.firstName +' '+ deliveryPerson.lastName}"></span>
+        </p>
+        <p class="d-flex align-items-center">
+            <i class="fas fa-phone text-success fa-lg"></i>
+            <span class="ml-2 text-dark" th:text="${deliveryPerson.phoneNumber}"></span>
+        </p>
+        <p class="d-flex align-items-center">
+            <i class="fas fa-envelope text-warning fa-lg"></i>
+            <span class="ml-2 text-dark" th:text="${deliveryPerson.username}"></span>
+        </p>
+    </div>
+
+    <!-- Order Actions -->
+    <div class="col-md-3 mt-3 ml-5 p-3 card shadow-sm rounded border-left">
+        <div class="">
+            <h6 class="font-weight-bold text-dark">Update Order Status:</h6>
+            <select id="orderStatus" class="form-control mb-2 rounded">
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+            <button class="btn btn-primary w-100 shadow-sm" onclick="updateOrderStatus()">Update</button>
+        </div>
+        
+        <!-- Cancel Order -->
+        <div class="mt-3 text-center">
+            <button class="btn btn-danger w-100 shadow-sm" onclick="cancelOrder()">
+                <i class="fas fa-times"></i> Cancel Order
+            </button>
+        </div>
+    </div>
+</div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#generateInvoiceButton').click(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: '/admin/generate-invoice-report', // URL of the controller endpoint
+                    success: function (response) {
+                        // Handle success, for example, display a success message
+                        alert('Invoice report generated successfully');
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error, for example, display an error message
+                        alert('Error generating invoice report: ' + error);
+                    }
+                });
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>

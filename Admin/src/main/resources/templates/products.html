@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::header}"></head>
+
+<head>
+    <script src="https://kit.fontawesome.com/b982f6e503.js" crossorigin="anonymous"></script>
+    <style>
+        *{
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+    </style>
+</head>
+
+<body id="page-top" class="bg-white">
+    <div id="wrapper">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <ul th:replace="~{fragments::sidebar}"></ul>
+                <!-- End of Sidebar -->
+
+                <!-- Content Wrapper -->
+                <div id="content-wrapper" class="col-md-10 bg-light container d-flex flex-column">
+                    <!-- Main Content -->
+                    <div id="content">
+                        <!-- Begin Page Content -->
+                        <div class="p-1">
+                            <div class="card p-3 shadow-sm rounded">
+                                <div class="row align-items-center">
+                                    <!-- Categories Section -->
+                                    <div class="col-md-3 mb-2">
+                                        <strong class="d-block mb-2">Categories</strong>
+                                        <form th:action="@{/get-by-category}" method="GET">
+                                            <div class="form-group d-flex align-items-center">
+                                                <div class="col-md-8">
+                                                    <select id="product_categories" name="product_categories" class="form-control custom-select" onchange="fetchSubcategories(this.value)">
+                                                        <option value="">-SELECT-</option>
+                                                        <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <button type="submit" class="btn btn-outline-dark">VIEW</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                            
+                                    <!-- Subcategories Section -->
+                                    <div class="col-md-3 mb-2">
+                                        <strong class="d-block mb-2">Subcategories</strong>
+                                        <form th:action="@{/get-by-subcategory}" method="GET">
+                                            <div class="form-group d-flex align-items-center">
+                                                <div class="col-md-8">
+                                                    <select id="product_subcategories" name="product_subcategories" class="form-control custom-select">
+                                                        <option value="">-SELECT-</option>
+                                                        <div th:each="subCategory: ${subcategories}">
+                                                            <option th:value="${subCategory.id}" th:text="${subCategory.name}"></option>
+                                                        </div>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <button type="submit" class="btn btn-outline-dark">VIEW</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                            
+                                    <!-- Export Section -->
+                                    <div class="col-md-3 mb-2 text-center">
+                                        
+                                        <a class="btn btn-outline-danger" th:href="@{/products/exportReport?reportFormat=pdf}" title="Export as PDF">
+                                            <i class="fa-solid fa-file-pdf"></i> PDF
+                                        </a>
+                                        <a class="btn btn-outline-info" th:href="@{/products/exportReport?reportFormat=csv}" title="Export as CSV">
+                                            <i class="fa-solid fa-file-csv"></i> CSV
+                                        </a>
+                                    </div>
+                            
+                                    <!-- Total & View By Size Section -->
+                                    <div class="col-md-3 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="text-dark font-weight-bold" th:text="'Total: ' + ${size}"></span>
+                                            </div>
+                                            <div>
+                                                <select id="view-by-size" name="view-by-size" class="form-control custom-select" onchange="viewBySize()">
+                                                    <option value="">-SELECT-</option>
+                                                    <option th:value="5" th:text="5"></option>
+                                                    <option th:value="10" th:text="10"></option>
+                                                    <option th:value="15" th:text="15"></option>
+                                                    <option th:value="20" th:text="20"></option>
+                                                    <option th:value="25" th:text="25"></option>
+                                                    <option th:value="50" th:text="50"></option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            <!-- Message for no products -->
+                            <div class="mt-5 card" th:if="${size == 0}">
+                                <h3 class="text-center">Products not found.</h3>
+                            </div>
+
+                            <!-- Success/Error Messages -->
+                            <div th:if="${success}" class="alert alert-success alert-dismissible fade show"
+                                role="alert">
+                                <p th:text="${success}"></p>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <p th:text="${error}"></p>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                            </div>
+
+                            <!-- Products Table -->
+<div class="mt-3 card shadow-sm rounded">
+    <table class="table table-hover table-md bg-white" th:if="${size > 0}">
+        <thead class="thead-white text-muted">
+            <tr>
+                <th scope="col" colspan="2">Product</th>
+                <!-- <th scope="col">Category</th>
+                <th scope="col">Sub-category</th> -->
+                <th scope="col">Unit Price(₹)</th>
+                <th scope="col">In Stock</th>
+                <th scope="col" colspan="1" class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="product, index : ${products}">
+                <td>
+                    <img class="img-fluid rounded" style="height: 40px; width: 40px; object-fit: cover;" alt="Product Image"
+                        th:src="'data:image/jpeg;base64,' + ${product.image}">
+                </td>
+                <td>
+                    <b th:text="${product.name}"></b>
+                    <br>
+                    <div class="row mt-2 text-muted">
+                        <span class="ml-3">Category: </span><span th:text="${product.category.name}"></span>
+                        <span class="ml-5">Subcategory: </span><p th:if="${product.subCategory.name} != null" th:text="${product.subCategory.name}"></p>
+                        <p th:if="${product.subCategory.name} == null">None</p>
+                    </div>
+                </td>
+                <!-- <td th:text="${product.category.name}"></td>
+                <td>
+                    <p th:if="${product.subCategory.name} != null" th:text="${product.subCategory.name}"></p>
+                    <p th:if="${product.subCategory.name} == null">None</p>
+                </td> -->
+                <td class="" th:text="'' + ${product.costPrice}"></td>
+                <td class="" th:text="${product.currentQuantity}"></td>
+                <td class="">
+                    <a th:href="@{/update-product/{id}(id= ${product.id})}" class="btn btn-sm btn-outline-primary" title="Edit">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                </td>
+                <td class="">
+                    <a th:if="${product.deleted} == true" th:href="@{/enable-product(id = ${product.id})}" class="btn btn-sm btn-outline-success" title="Enable">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </a>
+                    <a th:if="${product.deleted} == false" th:href="@{/delete-product(id = ${product.id})}" class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+                            <!-- Pagination -->
+                            <div th:if="${totalPages > 1}" class="pagination mt-5 ">
+                                <ul class="pagination text-center col-sm-10">
+                                    <li class="col-sm-1" th:if="${currentPage > 1}">
+                                        <a th:href="@{/products/{pageNo}(pageNo=${currentPage-1})}">&laquo; Prev</a>
+                                    </li>
+                                    <li class="col-sm-1" th:each="i : ${#numbers.sequence(1, totalPages)}">
+                                        <a th:href="@{/products/{pageNo}(pageNo=${i})}" th:text="${i}"
+                                            th:classappend="${i == currentPage ? 'active' : ''}"></a>
+                                    </li>
+                                    <li class="col-sm-1" th:if="${currentPage < totalPages}">
+                                        <a th:href="@{/products/{pageNo}(pageNo=${currentPage+1})}">Next &raquo;</a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- End of Main Content -->
+                </div>
+                <!-- End of Content Wrapper -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+        // Function to fetch subcategories based on selected category
+        function fetchSubcategories(categoryId) {
+            $.ajax({
+                url: '/admin/subcategories/' + categoryId,
+                type: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                beforeSend: function () {
+                    $('#product_subcategories').html('<option>Loading...</option>');
+                },
+                success: function (response) {
+                    // Clear existing options
+                    $('#product_subcategories').empty();
+                    // Append new options
+                    $.each(response, function (index, subcategory) {
+                        $('#product_subcategories').
+                            append($('<option>', {
+                                value: subcategory.id,
+                                text: subcategory.name
+                            }));
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error); // Log the error
+                }
+            });
+        }
+    </script>
+
+</body>
+
+</html>

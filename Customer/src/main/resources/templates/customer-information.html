@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::head}"></head>
+<head>
+    <style>
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        * {
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .sidebar {
+            padding: 20px;
+            height: 100vh;
+        }
+        .sidebar a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: #0855a7;
+            color: white;
+            text-decoration-color: white;
+            border-radius: 5px;
+        }
+        .content-section {
+            display: none;
+        }
+        .active-section {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div th:replace="~{fragments::main-top}"></div>
+    <header th:replace="~{fragments::main-header}"></header>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar">
+                <a onclick="showSection('personal-info')" class="active">Personal Info</a>
+                <a onclick="showSection('address-info')">Address Info</a>
+                <a onclick="showSection('wishlist')">My Wishlist</a>
+                <a onclick="showSection('orders')">My Orders</a>
+                <a th:href="@{/logout}">Logout</a>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div id="personal-info" class="content-section active-section">
+                    <h3>Personal Information</h3>
+                    <form th:action="@{/update-profile}" method="post" th:object="${customer}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>First Name</label>
+                                    <input type="text" th:field="*{firstName}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input type="text" th:field="*{lastName}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="text" th:field="*{username}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="number" th:field="*{phoneNumber}">
+                        </div>
+                        <button type="submit" class="btn btn-success">Update Profile</button>
+                    </form>
+                </div>
+                <div id="address-info" class="content-section">
+                    <h3>Address Information</h3>
+                    <form th:action="@{/update-customer-address}" method="post" th:object="${address}">
+                        <div class="form-group">
+                            <label>Street/Area</label>
+                            <input type="text" th:field="*{street}">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <input type="text" th:field="*{city}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Pincode</label>
+                                    <input type="text" th:field="*{pincode}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>State</label>
+                                    <input type="text" th:field="*{state}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Country</label>
+                                    <input type="text" th:field="*{country}">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-outline-success">Save Address</button>
+                    </form>
+                </div>
+                <div id="wishlist" class="content-section">
+                    <h3>My Wishlist</h3>
+                    <p>Wishlist items will be displayed here.</p>
+                </div>
+                <div id="orders" class="content-section">
+                    <h3>My Orders</h3>
+                    <p>Order history will be displayed here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments::footer}"></footer>
+
+    <script>
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active-section');
+            });
+            document.getElementById(sectionId).classList.add('active-section');
+            
+            document.querySelectorAll('.sidebar a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>
