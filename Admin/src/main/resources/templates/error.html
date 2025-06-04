@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+
+<head th:replace="~{fragments::head}"></head>
+
+<head>
+    <style>
+        * {
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to right, #3700B3, #6200EA);
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-top: 100px;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+
+        h1 {
+            color: #6200EA;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .error-detail {
+            margin-bottom: 15px;
+        }
+
+        .error-label {
+            font-weight: bold;
+            color: #444;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+        }
+
+        .btn-home {
+            background-color: #6200EA;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+        }
+
+        .btn-home:hover {
+            background-color: #4e00c8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card text-center">
+            <h1>Oops! Something went wrong</h1>
+            <p class="lead">We're sorry, but an unexpected error occurred.</p>
+
+            <div class="error-detail">
+                <p><span class="error-label">Status:</span>
+                    <span th:text="${errorDetails.status}">500</span>
+                </p>
+                <p><span class="error-label">Message:</span>
+                    <span th:text="${errorDetails.error}">An unexpected error occurred. Please try again later.</span>
+                </p>
+                <p><span class="error-label">Page:</span>
+                    <span th:text="${errorDetails.path}">/unknown</span>
+                </p>
+                <p><span class="error-label">Time:</span>
+                    <span th:text="${#temporals.format(errorDetails.timestamp, 'dd MMM yyyy HH:mm:ss')}">
+                        01 Jun 2025 13:45:00
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

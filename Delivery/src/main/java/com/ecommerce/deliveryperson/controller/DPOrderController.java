@@ -1,11 +1,11 @@
 package com.ecommerce.deliveryperson.controller;
 
 import com.ecommerce.library.model.Order;
+import com.ecommerce.library.model.OrderStatus;
 import com.ecommerce.library.service.AddressService;
 import com.ecommerce.library.service.DPOrderService;
 import com.ecommerce.library.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.jaxb.SpringDataJaxb.OrderDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,7 +20,6 @@ import com.ecommerce.library.model.Address;
 import com.ecommerce.library.model.DeliveryPerson;
 import com.ecommerce.library.service.DeliveryPersonService;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,9 @@ public class DPOrderController {
 
         List<Order> assignedOrders = dpOrderService.getAllAssignedOrders(deliveryPerson.getId());
 
+        System.out.println("-------------------------------------------------------------");
+        assignedOrders.stream().forEach(order->System.out.println(order.getDeliveryPerson().getEmail()));
+
         // Creating a Map to store order ID as key and customer details as value
         Map<Long, String> orderCustomerDetailsMap = new HashMap<>();
 
@@ -73,7 +75,7 @@ public class DPOrderController {
         model.addAttribute("title", "Assigned Orders");
         model.addAttribute("size", assignedOrders.size());
 
-        return "assigned-orders"; // Returning Thymeleaf view
+        return "assigned-orders"; 
     }
 
     // Endpoint for fetching order details as JSON (AJAX call)
@@ -102,6 +104,14 @@ public class DPOrderController {
         return "order-detail";
     }
 
+    // to view an order
+    @GetMapping("/order-shipped/{id}")
+    public String markAsShipped(@PathVariable Long id, Model model) {
+        orderService.getOrderByOrderId(id);
+        orderService.markOrderAsShipped(id);
+        return "redirect:/view-order/"+id;
+    }
+
 
     // delivered orders
     @RequestMapping("/delivered-orders")
@@ -127,12 +137,43 @@ public class DPOrderController {
             orderShippedAddressMap.put(order.getId(), shippedAddress);
         }
 
-        // Adding map to the model
         model.addAttribute("orderCustomerDetailsMap", orderShippedAddressMap);
         model.addAttribute("deliveredOrders", deliveredOrders);
         model.addAttribute("title", "Delivered Orders");
         model.addAttribute("size", deliveredOrders.size());
 
         return "delivered-orders"; // Returning Thymeleaf view
+    }
+
+    // delivered orders
+    @RequestMapping("/shipped-orders")
+    public String getAllShippedOrders(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return "redirect:/dp-login";
+        }
+
+        String dpUsername = authentication.getName();
+        DeliveryPerson deliveryPerson = deliveryPersonService.getDeliveryPersonByEmail(dpUsername);
+
+        List<Order> shippedOrders = dpOrderService.getAllShippedOrders(deliveryPerson.getId());
+
+        // Creating a Map to store order ID as key and shipping address as value
+        Map<Long, String> orderShippedAddressMap = new HashMap<>();
+
+        // Populating the map with order ID and address details
+        for (Order order : shippedOrders) {
+            String shippedAddress = order.getCustomer().getAddress();
+
+            // Adding order ID and shipping address to the map
+            orderShippedAddressMap.put(order.getId(), shippedAddress);
+        }
+
+        model.addAttribute("orderCustomerDetailsMap", orderShippedAddressMap);
+        model.addAttribute("shippedOrders", shippedOrders);
+        model.addAttribute("title", "Shipped Orders");
+        model.addAttribute("size", shippedOrders.size());
+
+        return "shipped-orders"; // Returning Thymeleaf view
     }
 }

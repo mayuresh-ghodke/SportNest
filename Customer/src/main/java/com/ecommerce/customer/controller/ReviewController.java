@@ -42,18 +42,20 @@ public class ReviewController {
     public String getReviews(Model model, Principal principal) {
         if (principal == null) {
             return "redirect:/login";
-        } else {
+        } 
+        else 
+        {
             Customer customer = customerService.findByUsername(principal.getName());
 
             List<Review> reviewList = reviewService.getReviewsByCustomerId(customer.getId());
             List<Product> productList = new ArrayList<>();
             Product product = new Product();
-
             for (Review review : reviewList) {
                 Long productId = review.getProductId();
                 product = productService.findById(productId);
                 productList.add(product);
             }
+
             model.addAttribute("reviewList", reviewList);
             model.addAttribute("productList", productList);
             model.addAttribute("title", "Reviews");
@@ -134,24 +136,17 @@ public class ReviewController {
         }
 
         Review review = reviewService.getReviewByReviewId(reviewId);
-        System.out.println(review.getProductId() + review.getCustomer().getFirstName());
-
-        Long customerId = customerService.getCustomerId(principal.getName());
-        Customer customer = customerService.getCustomerById(customerId);
-
+        Long customerId = customerService.getCustomerId(principal.getName());    
         Long productId = review.getProductId();
 
         // Check if a review already exists for the given customer and product
         Review existingReview = reviewService.getReviewByCustomerIdAndProductId(customerId, productId);
 
         if (existingReview != null) {
-            // Update existing review
-
             existingReview.setRatingNumber(review.getRatingNumber());
             existingReview.setFeedback(review.getFeedback());
             reviewService.save(existingReview);
             model.addAttribute("resultedReview", existingReview);
-
         }
 
         Product product = new Product();
@@ -172,8 +167,7 @@ public class ReviewController {
         if (principal == null) {
             return "redirect:/login";
         }
-
-        boolean result = reviewService.deleteReviewById(reviewId);
+        reviewService.deleteReviewById(reviewId);
 
         Customer customer = customerService.findByUsername(principal.getName());
 

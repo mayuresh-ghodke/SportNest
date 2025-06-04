@@ -1,6 +1,7 @@
 package com.ecommerce.library.service.impl;
 
 import com.ecommerce.library.dto.ProductDto;
+import com.ecommerce.library.exception.ResourceNotFoundException;
 import com.ecommerce.library.model.Product;
 import com.ecommerce.library.repository.ProductRepository;
 import com.ecommerce.library.service.ProductService;
@@ -31,13 +32,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDto> products() {
-        return transferData(productRepository.getAllProduct());
+        List<Product> productList = productRepository.getAllProduct();
+        if(productList.isEmpty()){
+            throw new ResourceNotFoundException("Products are not found. Product list is empty.");
+        }
+        return transferData(productList);
     }
 
     @Override
     public List<ProductDto> allProduct() {
-        List<Product> products = productRepository.findAll();
-        List<ProductDto> productDtos = transferData(products);
+        List<Product> productList = productRepository.findAll();
+        if(productList.isEmpty()){
+            throw new ResourceNotFoundException("Products are not found. Product list is empty.");
+        }
+        List<ProductDto> productDtos = transferData(productList);
         return productDtos;
     }
 
@@ -70,6 +78,9 @@ public class ProductServiceImpl implements ProductService {
     public Product update(MultipartFile imageProduct, ProductDto productDto) {
         try {
             Product productUpdate = productRepository.getReferenceById(productDto.getId());
+            if(productUpdate==null){
+                throw new ResourceNotFoundException("Product is not available to update.");
+            }
             if (imageProduct.getBytes().length > 0) {
                 if (imageUpload.checkExist(imageProduct)) {
                     productUpdate.setImage(productUpdate.getImage());
@@ -126,7 +137,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product findById(Long id) {
-        return productRepository.findById(id).get();
+        return productRepository.findById(id)
+                .orElseThrow(()->new ResourceNotFoundException("Product not found with ID-"+id));
     }
 
     @Override
@@ -173,13 +185,16 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDto> listViewProducts() {
-        
         return transferData(productRepository.listViewProduct());
     }
 
     @Override
     public List<ProductDto> findByCategoryId(Long id) {
-        return transferData(productRepository.getProductByCategoryId(id));
+        List<Product> productList = productRepository.getProductByCategoryId(id);
+        if(productList.isEmpty()){
+            throw new ResourceNotFoundException("Products not found for category with ID-"+id);
+        }
+        return transferData(productList);   
     }
 
     @Override
@@ -214,6 +229,7 @@ public class ProductServiceImpl implements ProductService {
             productDto.setActivated(product.is_activated());
             productDto.setDeleted(product.is_deleted());
             productDto.setSubCategory(product.getSubCategory());
+
             productDtos.add(productDto);
         }
         return productDtos;
@@ -221,7 +237,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getProductsBySubCategoryId(Long id) {
-        
-        return productRepository.findProductsBySubCategoryId(id);
+        List<Product> productList  = productRepository.findProductsBySubCategoryId(id);
+        if(productList.isEmpty()){
+            throw new ResourceNotFoundException("Products not found for subcategory ID-"+id);
+        }
+        return productList;
     }
 }

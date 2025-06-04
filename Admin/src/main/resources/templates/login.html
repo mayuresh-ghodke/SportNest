@@ -4,20 +4,27 @@
 <head th:replace="~{fragments::header}"></head>
 
 <body class="bg-primary">
-    <div class="container p-5">
+    <div class="container-fluid p-5">
         <!-- Outer Row -->
         <div class="row mt-5">
-            <div class="col-md-6 justify-content-center">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
                 <div class="card">
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
-                        <div class="row">
-                            <div class="col-md-12">
+                        <div class="">
+                            <div class="">
                                 <div class="p-5">
                                     <div class="text-center">
                                         <h3 class=" mb-4">ADMIN LOGIN</h3>
                                     </div>
 
+                                    <div th:if="${success}" class="text-center alert alert-success">
+                                        <p th:text="${success}"></p>
+                                    </div>
+                                    <div th:if="${error}" class="text-center alert alert-danger">
+                                        <p th:text="${error}"></p>
+                                    </div>
                                     <div th:if="${param.error}" class="alert alert-danger text-center">
                                         Invalid username or password
                                     </div>
@@ -65,15 +72,13 @@
                                         <a th:href="@{/forgot-password}" href="forgot-password.html">Forgot Password
                                             ?</a>
                                     </div>
-                                    <div class="text-center">
-                                        <a th:href="@{/register}" href="register.html">Create an Account</a>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="col-md-3"></div>
         </div>
     </div>
 </body>

@@ -18,19 +18,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     boolean deleteOrderById(Long orderId);
 
-    Order save(Order order);
-
     @Transactional
     @Modifying
     @Query("UPDATE Order o SET o.paymentId = :paymentId, o.status = :status WHERE o.id = :orderId")
-    Order updatePaymentIdAndStatus(Long orderId, String paymentId, String status);
+    int updatePaymentIdAndStatus(Long orderId, String paymentId, String status);
 
     Order findOrderById(Long id);
  
     List<Order> findOrdersByCustomerIdAndOrderStatus(Long customerId, OrderStatus orderStatus);
 
     // Find all orders assigned to a specific delivery person
-    List<Order> findByDeliveryPerson_IdAndOrderStatus(Long deliveryPersonId, String orderStatus);
+    List<Order> findByDeliveryPerson_IdAndOrderStatus(Long deliveryPersonId, OrderStatus orderStatus);
 
 
 }

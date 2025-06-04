@@ -1,7 +1,5 @@
 package com.ecommerce.library.dto;
 
-//import com.ecommerce.library.model.City;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -13,12 +11,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerDto {
+
     @NotEmpty(message = "Firstname is required.")
-    @Size(min = 3, max = 16, message = "First name contains 3-16 characters")
+    @Size(min = 2, max = 16, message = "First name contains 2 - 16 characters")
     private String firstName;
 
     @NotEmpty(message = "Lastname is required.")
-    @Size(min = 3, max = 10, message = "Last name contains 3-10 characters")
+    @Size(min = 2, max = 16, message = "Last name contains 2 - 16 characters")
     private String lastName;
     
     @NotEmpty(message = "Email is required.")
@@ -26,16 +25,14 @@ public class CustomerDto {
     private String username;
 
     @NotEmpty(message = "Password is required.")
-    @Size(min = 3, max = 15, message = "Password contains 3-10 characters")
+    @Size(min = 4, max = 15, message = "Password contains 4-10 characters")
     private String password;
 
-    @Size(min = 10, max = 15, message = "Phone number contains 10-15 characters")
+    @Size(min = 10, max = 10, message = "Phone number contains 10 digits")
     private String phoneNumber;
 
-    private String address;
     private String confirmPassword;
-    //private City city;
+
     private String image;
-    private String country;
 
 }

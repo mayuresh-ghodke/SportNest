@@ -1,5 +1,6 @@
 package com.ecommerce.library.service.impl;
 
+import com.ecommerce.library.exception.ResourceNotFoundException;
 import com.ecommerce.library.model.*;
 import com.ecommerce.library.repository.CustomerRepository;
 import com.ecommerce.library.repository.OrderDetailRepository;
@@ -92,21 +93,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-@Override
-public Order cancelOrder(Long id) {
-    Order order = orderRepository.findOrderById(id);
-    if (order == null) {
-        throw new IllegalArgumentException("Order with ID " + id + " not found.");
+    @Override
+    public Order cancelOrder(Long id) {
+        Order order = orderRepository.findOrderById(id);
+        if (order == null) {
+            throw new IllegalArgumentException("Order with ID " + id + " not found.");
+        }
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+        return order;
     }
-    order.setOrderStatus(OrderStatus.CANCELLED);
-    orderRepository.save(order);
-    return order;
-}
 
 
     @Override
     public Order getOrderByOrderId(Long id) {
         Order order = orderRepository.findOrderById(id);
+        if(order==null){
+            System.out.println("ResourceNotFoundException occured!");
+            throw new ResourceNotFoundException("Order with ID-"+id+" not found.");
+        }
         return order;
     }
 
@@ -138,8 +143,9 @@ public Order cancelOrder(Long id) {
 
     @Override
     public List<Order> getOrdersByCustomerIdAndOrderStatus(Long customerId, OrderStatus orderStatus) {
-        return orderRepository.findOrdersByCustomerIdAndOrderStatus(customerId, orderStatus);
-        
+        Customer customer = customerRepository.findCustomerById(customerId);
+        return customer.getOrders()
+        .stream().filter(order->order.getOrderStatus().equals(orderStatus)).toList();
     }
 
     public List<Order> getAllPendingOrders(){
@@ -172,5 +178,12 @@ public Order cancelOrder(Long id) {
             }
         }
         return deliveredOrders;
+    }
+
+    @Override
+    public Order markOrderAsShipped(Long id) {
+        Order order = orderRepository.findOrderById(id);
+        order.setOrderStatus(OrderStatus.SHIPPED);
+        return orderRepository.save(order);
     }
 }

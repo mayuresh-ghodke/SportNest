@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org/">
+<!-- Basic -->
+
+<head th:replace="~{fragments::head}"></head>
+<body>
+    <!-- Top Sections -->
+    <div th:replace="~{fragments::main-top}"></div>
+    <header th:replace="~{fragments::main-header}"></header>
+
+    <h3 th:text="${message}">Error</h3>
+
+    <!-- Description -->
+    <div class="container">
+        <div class="row text-justify p-5">
+            <div class="col-md-12">
+                <h4>What Happened?</h4>
+                <p>Our team at Sportify Gear is dedicated to providing you with a professional and seamless
+                    shopping experience. If something went wrong, we're on it!</p>
+                <a href="/" class="btn btn-primary mt-3">Back to Home</a>
+            </div>
+        </div>
+    </div>
+<!-- Start Footer  -->
+<footer th:replace="~{fragments::footer}"></footer>
+</body>
+</html>

@@ -3,17 +3,13 @@ package com.ecommerce.customer.controller;
 import com.ecommerce.library.dto.CustomerDto;
 import com.ecommerce.library.model.Address;
 import com.ecommerce.library.model.Customer;
-import com.ecommerce.library.model.PaymentOrder;
-import com.ecommerce.library.repository.PaymentOrderRepository;
 import com.ecommerce.library.service.AddressService;
 import com.ecommerce.library.service.CustomerService;
 import com.ecommerce.library.service.OtpService;
-import com.ecommerce.library.service.PaymentOrderService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,33 +21,25 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import com.razorpay.*;
 
 @Controller
 @RequiredArgsConstructor
-public class CustomerController
-{
+public class CustomerController{
+
     @Autowired
     private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
-    private final PaymentOrderService paymentOrderService;
 
     @Autowired
     private final OtpService otpService;
 
     @Autowired
     private AddressService addressService;
-
-    //this is for update order for payment
-    private final PaymentOrderRepository paymentOrderRepository;
 
     @GetMapping("/profile")
     public String profile(Model model, Principal principal) {
@@ -76,55 +64,49 @@ public class CustomerController
 
     @PostMapping("/update-customer-address")
     public String updateAddress(@ModelAttribute("address") Address updatedAddress, 
-        Model model, Principal principal, BindingResult result) {
+        Model model, Principal principal, BindingResult result, RedirectAttributes redirectAttributes) {
 
-    if (principal == null) {
-        return "redirect:/login";
-    }
+        if (principal == null) {
+            return "redirect:/login";
+        }
 
-    String username = principal.getName();
-    Long customerId = customerService.getCustomerId(username);
-    Customer customer = customerService.getCustomerById(customerId);
-    
-    // Retrieve the existing address by customer ID
-    Address existingAddress = addressService.getAddressByCustomerId(customerId);
-    
-    if (existingAddress != null) {
-        // Update the existing address with new information
-        existingAddress.setStreet(updatedAddress.getStreet());
-        existingAddress.setCity(updatedAddress.getCity());
-        // Save the updated address
-        addressService.save(existingAddress);
+        String username = principal.getName();
+        Long customerId = customerService.getCustomerId(username);
+        Customer customer = customerService.getCustomerById(customerId);
+        
+        // Retrieve the existing address by customer ID
+        Address existingAddress = addressService.getAddressByCustomerId(customerId);
+        
+        if (existingAddress != null) {
+            existingAddress.setStreet(updatedAddress.getStreet());
+            existingAddress.setCity(updatedAddress.getCity());
+            addressService.save(existingAddress);
+        }
+        else{
+            Address address = new Address();
+            address.setCity(updatedAddress.getCity());
+            address.setPincode(updatedAddress.getPincode());
+            address.setCountry(updatedAddress.getCountry());
+            address.setStreet(updatedAddress.getStreet());
+            address.setState(updatedAddress.getState());
+            address.setCustomer(customer);
+            addressService.save(address);
+        }
+        redirectAttributes.addFlashAttribute("success", "Address saved successfully.");
+        return "redirect:/profile";
     }
-    else{
-        Address address = new Address();
-        address.setCity(updatedAddress.getCity());
-        address.setPincode(updatedAddress.getPincode());
-        address.setCountry(updatedAddress.getCountry());
-        address.setStreet(updatedAddress.getStreet());
-        address.setState(updatedAddress.getState());
-        address.setCustomer(customer);
-        addressService.save(address);
-    }
-    return "redirect:/profile";
-}
-
 
     @PostMapping("/update-profile")
     public String updateProfile(@Valid @ModelAttribute("customer") CustomerDto customerDto,
-                                BindingResult result,
-                                RedirectAttributes attributes,
-                                Model model,
-                                Principal principal) {
+            BindingResult result, RedirectAttributes attributes, Model model,
+            Principal principal) {
+
         if(principal == null) {
             return "redirect:/login";
         }
-        String username = principal.getName();
-        customerService.getCustomer(username);
-        
         customerService.update(customerDto);
         CustomerDto customerUpdate = customerService.getCustomer(principal.getName());
-        attributes.addFlashAttribute("success", "Update successfully!");
+        attributes.addFlashAttribute("success", "Profile Updated successfully!");
         model.addAttribute("customer", customerUpdate);
         return "redirect:/profile";
     }
@@ -170,7 +152,6 @@ public class CustomerController
     }
 
     // Forgot Password:- 
-
     @GetMapping("/forgot-password")
     public String forgotPasswordPage(Model model){
         model.addAttribute("title", "Forgot Password");
@@ -214,58 +195,5 @@ public class CustomerController
             response.put("message", "Invalid OTP. Please try again.");
             return ResponseEntity.badRequest().body(response);
         }
-    }
-
-    // Creating order for payment
-    @PostMapping("/create_order")
-    @ResponseBody
-    public String createOrder(@RequestBody Map<String, Object> data, Principal principal) throws Exception{
-        String username = principal.getName();
-        Long customerId = customerService.getCustomerId(username);
-        double amount = Double.parseDouble(data.get("amount").toString()); // Parsing as double
-
-        var client = new RazorpayClient("rzp_test_9NlQwnOUBr8xWJ", "QPkPgAbvVY5uKEX8XstWO9ld");
-
-         // Generate a unique transaction ID with date, time, customerId
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss"); // Format date-time
-        String formattedDateTime = now.format(formatter); 
-
-        String uniqueTransactionId = "txn_" + formattedDateTime + "_" + customerId.toString();
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("amount", (int) amount *100); 
-        jsonObject.put("currency", "INR");
-        jsonObject.put("receipt", uniqueTransactionId);
-        
-        //creating new order, from here request goest to razorpay server
-        Order order =  client.orders.create(jsonObject);
-        
-        // we save this order info in database
-        PaymentOrder paymentOrder = new PaymentOrder();
-        paymentOrder.setAmount(order.get("amount")+"");
-        paymentOrder.setOrderId(order.get("id"));
-        paymentOrder.setPaymentId("null");
-        paymentOrder.setStatus("created");
-        Customer customer = customerService.findByUsername(username);
-        paymentOrder.setCustomer(customer);
-        paymentOrder.setReceipt(order.get("receipt"));
-
-        this.paymentOrderService.save(paymentOrder);
-        
-        return order.toString();
-    }
-    
-    @PostMapping("/update_order")
-    public ResponseEntity<?> updateOrder(@RequestBody Map<String, Object> data){
-        PaymentOrder paymentOrder = paymentOrderRepository.findByOrderId(data.get("order_id").toString());
-
-        paymentOrder.setPaymentId(data.get("payment_id").toString());
-        paymentOrder.setOrderId(data.get("order_id").toString());
-        paymentOrder.setStatus(data.get("status").toString());
-
-        paymentOrderRepository.save(paymentOrder);
-
-        return ResponseEntity.ok(Map.of("msg","updated"));
     }
 }

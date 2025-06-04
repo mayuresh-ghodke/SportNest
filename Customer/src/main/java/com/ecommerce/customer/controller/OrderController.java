@@ -2,21 +2,25 @@ package com.ecommerce.customer.controller;
 
 import com.ecommerce.library.dto.CustomerDto;
 import com.ecommerce.library.dto.ProductDto;
+import com.ecommerce.library.exception.ResourceNotFoundException;
 import com.ecommerce.library.model.*;
 import com.ecommerce.library.repository.OrderDetailRepository;
 import com.ecommerce.library.repository.OrderRepository;
 import com.ecommerce.library.service.*;
+import com.ecommerce.library.utils.PdfGenerator;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
@@ -33,7 +37,9 @@ public class OrderController {
     private final CustomerService customerService;
     private final OrderService orderService;
     private final ProductService productService;
-    private final EmailSenderService emailSenderService;
+
+    @Autowired
+    private final JavaMailSender javaMailSender;
 
     @Autowired
     private final OrderRepository orderRepository;
@@ -44,155 +50,248 @@ public class OrderController {
     private final ReviewService reviewService;
 
     @GetMapping("/check-out")
-    public String checkOut(Principal principal, Model model) {
+    public String checkOut(Principal principal, Model model, RedirectAttributes redirectAttributes) {
         if (principal == null) {
             return "redirect:/login";
-        } else {
+        } 
+        else {
             CustomerDto customer = customerService.getCustomer(principal.getName());
 
             Long id = customerService.getCustomerId(customer.getUsername());
             Address address = addressService.getAddressByCustomerId(id);
             if(address==null){
                 model.addAttribute("page", "profile");
+                redirectAttributes.addFlashAttribute("warning", "Please complete address information first, then try to proceed further...!");
                 return "redirect:/profile";
             }
             else{
                 ShoppingCart cart = customerService.findByUsername(principal.getName()).getCart();
-            model.addAttribute("customer", customer);
-            customer.setAddress(address.getStreet());
-            model.addAttribute("address", address);
-            model.addAttribute("title", "Check-Out");
-            model.addAttribute("page", "Check-Out");
-            model.addAttribute("shoppingCart", cart);
-            model.addAttribute("grandTotal", cart.getTotalItems());
-            return "checkout";
-            }
-        }
-    }
 
-    // include orderDetails in the model
-    @GetMapping("/orders")
-    public String getOrders(Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/login";
-        } 
-        else
-        {
-            Customer customer = customerService.findByUsername(principal.getName());
-            List<Order> orderList = customer.getOrders();
-
-            ListIterator<Order> listIterator = orderList.listIterator(orderList.size());
-
-            List<List<Product>> productsList = new ArrayList<>();
-            // Create a list to store orderDetails
-            List<List<OrderDetail>> orderDetailsList = new ArrayList<>();
-
-            // Loop through each order
-            while(listIterator.hasPrevious()) {
-                Order order = (Order)listIterator.previous();
-                Long id = order.getId();
-
-                // Retrieve products for the current order
-                List<Product> productList = orderDetailRepository.getProductsByOrderId(id);
-                // Add products to the list
-                productsList.add(productList);
-
-                // Retrieve order details for the current order
-                List<OrderDetail> orderDetails = new ArrayList<>();
-                for (Product product : productList) {
-                    Long productId = product.getId();
-                    int quantity = orderDetailRepository.getQuantityByProductIdAndOrderId(productId, order.getId());
-                    OrderDetail orderDetail = new OrderDetail();
-                    orderDetail.setProductQuantity(quantity);
-                    orderDetails.add(orderDetail); // Add order detail to the list
+                if(cart.getCartItems().isEmpty() || cart.getTotalItems()==0){
+                    redirectAttributes.addFlashAttribute("warning", "Please add items to cart to proceed further...!");
+                    return "redirect:/cart";
                 }
-                orderDetailsList.add(orderDetails); // Add order details list to the main list
+
+                model.addAttribute("customer", customer);
+                model.addAttribute("address", address);
+                model.addAttribute("title", "CheckOut Page");
+                model.addAttribute("page", "Check-Out");
+                model.addAttribute("shoppingCart", cart);
+                model.addAttribute("grandTotal", cart.getTotalItems());
+                return "checkout";
+            }
+        }
+    }
+
+    @GetMapping("/orders")
+public String getOrders(Model model, Principal principal) {
+    if (principal == null) {
+        return "redirect:/login";
+    } else {
+        Customer customer = customerService.findByUsername(principal.getName());
+        List<Order> orderList = customer.getOrders();
+        ListIterator<Order> listIterator = orderList.listIterator(orderList.size());
+
+        List<List<Product>> productsList = new ArrayList<>();
+        List<List<OrderDetail>> orderDetailsList = new ArrayList<>();
+
+        while (listIterator.hasPrevious()) {
+            Order order = listIterator.previous();
+            Long orderId = order.getId();
+
+            List<Product> productList = orderDetailRepository.getProductsByOrderId(orderId);
+            productsList.add(productList);
+
+            List<OrderDetail> orderDetails = new ArrayList<>();
+            for (Product product : productList) {
+                Long productId = product.getId();
+                int quantity = orderDetailRepository.getQuantityByProductIdAndOrderId(productId, orderId);
+                OrderDetail detail = new OrderDetail();
+                detail.setProductQuantity(quantity);
+                orderDetails.add(detail);
             }
 
-            Address address = addressService.getAddressByCustomerId(customer.getId());
-
-            // Add orders, products, and orderDetails to the model
-            model.addAttribute("orders", orderList);
-            model.addAttribute("address", address);
-            model.addAttribute("productsList", productsList);
-            model.addAttribute("orderDetailsList", orderDetailsList); // Add orderDetails to the model
-            model.addAttribute("title", "View Orders");
-            model.addAttribute("page", "order");
-
-            return "order";
+            orderDetailsList.add(orderDetails);
         }
+
+        Address address = addressService.getAddressByCustomerId(customer.getId());
+
+        model.addAttribute("orders", orderList);
+        model.addAttribute("address", address);
+        model.addAttribute("productsList", productsList);
+        model.addAttribute("orderDetailsList", orderDetailsList);
+        model.addAttribute("title", "View Orders");
+        model.addAttribute("allStatuses", OrderStatus.values());
+        model.addAttribute("page", "order");
+
+        return "order";
+    }
     }
 
-    @GetMapping("/cancel-order/{id}")
-    public String cancelOrder(@PathVariable("id") Long id, RedirectAttributes attributes) {
-        Order order = orderService.cancelOrder(id);
-        if (order!=null) {
-            attributes.addFlashAttribute("success", "Cancel order successfully!");
-        } else {
-            attributes.addFlashAttribute("error", "Error cancelling order!");
+    @GetMapping("/orders/status")
+    public String viewOrders(@RequestParam(required = false) OrderStatus status, 
+        Principal principal, Model model) {
+
+        if(principal == null){
+            return "redirect:/login";
         }
-        return "redirect:/orders";
+
+        String username = principal.getName();
+        Customer customer = customerService.findByUsername(username);
+        List<Order> orders = new ArrayList<Order>();
+        if(status.toString().equals("ALL")){
+            orders = orderService.findAll(username);
+        }
+        else{
+            orders = orderService.getOrdersByCustomerIdAndOrderStatus(customer.getId(), status);
+        }
+        model.addAttribute("orders", orders);
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("allStatuses", OrderStatus.values());
+        return "orders";
     }
 
-    @RequestMapping(value = "/add-order", method = { RequestMethod.POST })
+
+    @PostMapping("/add-order")
     public String createOrder(Principal principal,
-            @RequestParam("paymentId") String paymentId,
-            @RequestParam("status") String status,
-            Model model,
-            HttpSession session) {
+                              @RequestParam("paymentId") String paymentId,
+                              @RequestParam("status") String status,
+                              Model model, HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+
         if (principal == null) {
             return "redirect:/login";
-        } else {
-            Customer customer = customerService.findByUsername(principal.getName());
-            ShoppingCart cart = customer.getCart();
-            Order order = orderService.save(cart);
+        }
 
-            // We set payemntId and status after saving order
-            order.setPaymentId(paymentId);
-            order.setStatus(status);
-            orderRepository.save(order);
+        Customer customer = customerService.findByUsername(principal.getName());
+        ShoppingCart cart = customer.getCart();
 
-            // send email to customer about order confirmation
+        // 1. when cart empty or total price empty dont proceed
+        if (cart.getCartItems().isEmpty() || cart.getTotalPrice() == 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Your cart is empty or order already placed.");
+            return "redirect:/orders";
+        }
+
+        // 2. to save an order
+        Order order = orderService.save(cart);
+        order.setPaymentId(paymentId);
+        order.setStatus(status);
+        orderRepository.save(order); // to update paymentId and status
+
+        // to remove items from sessin, after successfull order placed.
+        session.removeAttribute("totalItems");
+
+        // 3. to generate pdf
+        try{
+            sendOrderConfirmationEmail(order, customer);
+        }
+        catch(Exception e){
+           e.printStackTrace();
+        }
+
+        // 4. to send user to order cofirmation page
+        redirectAttributes.addFlashAttribute("successMessage", "Order has been placed successfully.");
+        return "redirect:/order-confirmation?orderId=" + order.getId();
+    }
+
+    @GetMapping("/order-confirmation")
+    public String orderConfirmation(@RequestParam("orderId") Long orderId, Model model, Principal principal,
+                                    @org.springframework.web.bind.annotation.ModelAttribute("successMessage") String successMessage,
+                                    @org.springframework.web.bind.annotation.ModelAttribute("errorMessage") String errorMessage) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        Customer customer = customerService.findByUsername(principal.getName());
+        Order order = orderService.getOrderByOrderId(orderId);
+
+        if (order == null || !order.getCustomer().getId().equals(customer.getId())) {
+            return "redirect:/orders";
+        }
+
+        model.addAttribute("order", order);
+        model.addAttribute("title", "Order Detail");
+        model.addAttribute("page", "order-detail");
+
+        if (successMessage != null && !successMessage.isEmpty()) {
+            model.addAttribute("success", successMessage);
+        }
+        if (errorMessage != null && !errorMessage.isEmpty()) {
+            model.addAttribute("error", errorMessage);
+        }
+
+        return "order-detail";
+    }
+
+    // to send order confirmation and email to customer
+    private void sendOrderConfirmationEmail(Order order, Customer customer) {
+        try {
             String toEmail = customer.getUsername();
-            String subject = "Order Confirmation";
+            String subject = "We’ve Received Your Order – Sport Shop";
             String firstName = customer.getFirstName();
             String lastName = customer.getLastName();
 
             List<Product> productsList = orderDetailRepository.getProductsByOrderId(order.getId());
-
             StringBuilder productDetails = new StringBuilder();
 
+            double total = 0.0;
             for (Product product : productsList) {
                 Long productId = product.getId();
                 int quantity = orderDetailRepository.getQuantityByProductIdAndOrderId(productId, order.getId());
-                double unitPrice = product.getCostPrice(); // Assuming the Product class has a method to get the unit
-                                                           // price
+                double unitPrice = product.getCostPrice();
                 double totalPrice = quantity * unitPrice;
+                total += totalPrice;
 
-                // Add product details to the message
                 productDetails.append("Product: ").append(product.getName())
                         .append(" | Qty: ").append(quantity)
-                        .append(" | Unit Price: ").append(unitPrice)
-                        .append(" | Total: ").append(totalPrice)
+                        .append(" | Unit Price: ₹").append(unitPrice)
+                        .append(" | Total: ₹").append(totalPrice)
                         .append("\n");
             }
 
-            // Construct the final message body
-            String body = "Mr/Mrs. " + firstName + " " + lastName + " your order has been placed successfully. " +
-                    "OrderId = " + order.getId() +
-                    " | Total QTY = " + order.getQuantity() +
-                    " | Total Amount = " + order.getTotalPrice() + "\n" +
-                    "Order Details:\n" + productDetails.toString();
+            // 📄 Generate PDF receipt
+            byte[] pdfBytes = PdfGenerator.generateOrderReceiptPdf(
+                    String.valueOf(order.getId()),
+                    firstName + " " + lastName,
+                    productsList,
+                    total
+            );
 
-            emailSenderService.sendSimpleEmail(toEmail, body, subject);
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            session.removeAttribute("totalItems");
-            model.addAttribute("order", order);
-            model.addAttribute("title", "Order Detail");
-            model.addAttribute("page", "order-detail");
-            model.addAttribute("success", "Order has been placed successfully");
-            return "order-detail";
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            String body = "Dear " + firstName + " " + lastName + ",\n\n"
+                    + "Thank you for shopping with Sport Shop!\n\n"
+                    + "Order ID: " + order.getId() + "\n"
+                    + "Total Items: " + order.getQuantity() + "\n"
+                    + "Total Amount: ₹" + order.getTotalPrice() + "\n\n"
+                    + "Items:\n" + productDetails.toString()
+                    + "\n\nYou can track order with given OrderId. Your receipt is attached as a PDF.\n\n"
+                    + "Regards,\nSport Shop Team";
+
+            helper.setText(body, false);
+            helper.addAttachment(order.getId()+"_order-receipt.pdf", new ByteArrayResource(pdfBytes));
+
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            System.err.println("Error sending order confirmation email for Order ID: " + order.getId() + " - " + e.getMessage());
+            //e.printStackTrace();
         }
+    }
+
+    @GetMapping("/cancel-order/{id}")
+    public String cancelOrder(@PathVariable("id") Long id, 
+                RedirectAttributes attributes) {
+        Order order = orderService.cancelOrder(id);
+        if (order!=null) {
+            attributes.addFlashAttribute("success", "Order has been cancelled successfully!");
+        } else {
+            attributes.addFlashAttribute("error", "Error while cancelling order!");
+        }
+        return "redirect:/orders";
     }
 
     // View Receipt
@@ -201,7 +300,8 @@ public class OrderController {
             Model model, Principal principal) {
         if (principal == null) {
             return "redirect:/login";
-        } else {
+        } 
+        else {
             Customer customer = customerService.findByUsername(principal.getName());
             Address address = addressService.getAddressByCustomerId(customer.getId());
 
@@ -236,67 +336,71 @@ public class OrderController {
     }
 
     @GetMapping("/trackOrder")
-public String getOrderTracking(Model model,
-                               @RequestParam("orderId") Long orderId,
-                               @RequestParam("phoneNumber") String phoneNumber,
-                               Principal principal) {
-    // Retrieve order safely
-    Optional<Order> optionalOrder = Optional.ofNullable(orderService.getOrderByOrderId(orderId));
+    public String getOrderTracking(Model model, @RequestParam("orderId") Long orderId,
+            @RequestParam("phoneNumber") String phoneNumber, Principal principal) {
+    try{
+        // Retrieve order safely
+        Optional<Order> optionalOrder = 
+                Optional.ofNullable(orderService.getOrderByOrderId(orderId));
 
-    // Check if order exists
-    if (!optionalOrder.isPresent()) {
-        model.addAttribute("status", "Order with ID-" + orderId + " not found for user with mobile number " + phoneNumber);
+        // Check if order exists
+        if (!optionalOrder.isPresent()) {
+            model.addAttribute("status", "Order with ID-" + orderId + " not found for user with mobile number " + phoneNumber);
+            return "track-order";
+        }
+
+        Order order = optionalOrder.get();
+
+        // Validate phone number
+        if (!order.getCustomer().getPhoneNumber().equalsIgnoreCase(phoneNumber)) {
+            model.addAttribute("status", "Incorrect mobile number.");
+            return "track-order";
+        }
+
+        // Determine order status message
+        String orderStatusResult;
+        OrderStatus orderStatus = order.getOrderStatus();
+
+        switch (orderStatus) {
+            case PENDING:
+                orderStatusResult = "Order with OrderId: " + orderId + " is PENDING.";
+                break;
+            case CONFIRMED:
+                orderStatusResult = "Order with OrderId: " + orderId + " is CONFIRMED.";
+                break;
+            case CANCELLED:
+                orderStatusResult = "Order with OrderId: " + orderId + " is CANCELLED.";
+                break;
+            case ASSIGNED:
+                orderStatusResult = "Order with OrderId: " + orderId + " is ASSIGNED.";
+                break;
+            case SHIPPED:
+                orderStatusResult = "Order with OrderId: " + orderId + " is SHIPPED.";
+                break;
+            case DELIVERED:
+                orderStatusResult = "Order with OrderId: " + orderId + " is DELIVERED.";
+                break;
+            default:
+                orderStatusResult = "Unknown order status for OrderId: " + orderId;
+        }
+        // Add attributes to model
+        model.addAttribute("order", optionalOrder.get());
+        model.addAttribute("orderStatusResult", orderStatusResult);
+        model.addAttribute("page", "track-order");
+        model.addAttribute("title", "Track Order");
+
         return "track-order";
     }
-
-    Order order = optionalOrder.get();
-
-    // Validate phone number
-    if (!order.getCustomer().getPhoneNumber().equalsIgnoreCase(phoneNumber)) {
-        model.addAttribute("status", "Incorrect mobile number.");
+    catch(ResourceNotFoundException rnfe){
+        model.addAttribute("status", rnfe.getMessage());
         return "track-order";
     }
-
-    // Determine order status message
-    String orderStatusResult;
-    OrderStatus orderStatus = order.getOrderStatus();
-    
-    switch (orderStatus) {
-        case PENDING:
-            orderStatusResult = "Order with OrderId: " + orderId + " is PENDING.";
-            break;
-        case CONFIRMED:
-            orderStatusResult = "Order with OrderId: " + orderId + " is CONFIRMED.";
-            break;
-        case CANCELLED:
-            orderStatusResult = "Order with OrderId: " + orderId + " is CANCELLED.";
-            break;
-        case ASSIGNED:
-            orderStatusResult = "Order with OrderId: " + orderId + " is ASSIGNED.";
-            break;
-        case SHIPPED:
-            orderStatusResult = "Order with OrderId: " + orderId + " is SHIPPED.";
-            break;
-        case DELIVERED:
-            orderStatusResult = "Order with OrderId: " + orderId + " is DELIVERED.";
-            break;
-        default:
-            orderStatusResult = "Unknown order status for OrderId: " + orderId;
-    }
-
-    // Add attributes to model
-    model.addAttribute("order", optionalOrder.get());
-    model.addAttribute("orderStatusResult", orderStatusResult);
-    model.addAttribute("page", "track-order");
-    model.addAttribute("title", "Track Order");
-
-    return "track-order";
 }
 
     @GetMapping("/write-review/{id}/{prodId}")
-    public String getWriteReview(@PathVariable("id") Long id,
-            @PathVariable("prodId") Long prodId,
+    public String getWriteReview(@PathVariable("id") Long id, @PathVariable("prodId") Long prodId,
             Model model, Principal principal) {
+
         Customer customer = customerService.findByUsername(principal.getName());
         Order order = orderService.getOrderByOrderId(id);
 
@@ -336,7 +440,8 @@ public String getOrderTracking(Model model,
 
     // to filters order by status
     @GetMapping("/get-orders-by-status")
-public String filterOrders(@RequestParam("status") String orderStatus, Model model, Principal principal) {
+    public String filterOrders(@RequestParam("status") String orderStatus,
+                               Model model, Principal principal) {
     if (principal == null) {
         return "redirect:/login";
     }
@@ -348,28 +453,13 @@ public String filterOrders(@RequestParam("status") String orderStatus, Model mod
     // Assuming you have a method to get orders by customer ID
     List<Order> ordersList = customer.getOrders();
 
-    // Debug output to verify statuses
-    System.out.println("--------------------");
-    for (Order order : ordersList) {
-        System.out.println(order.getOrderStatus());
-    }
-    
     // Filter orders by status using equals method
     List<Order> filteredOrders = ordersList.stream()
-        .filter(order -> orderStatus.equals(order.getOrderStatus()))
+        .filter(order -> orderStatus.equals(order.getOrderStatus().toString()))
         .collect(Collectors.toList());
 
-    // Debug output to verify statuses
-    System.out.println("--------------------");
-    for (Order order : filteredOrders) {
-        System.out.println(order.getStatus());
-    }
-    
     model.addAttribute("title", "Orders");
     model.addAttribute("orders", filteredOrders); // Add filtered orders to the model
     return "order";
 }
-
-
-
 }

@@ -1,13 +1,13 @@
 package com.ecommerce.library.service.impl;
 
 import com.ecommerce.library.dto.CategoryDto;
+import com.ecommerce.library.exception.ResourceNotFoundException;
 import com.ecommerce.library.model.Category;
 import com.ecommerce.library.repository.CategoryRepository;
 import com.ecommerce.library.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +23,6 @@ public class CategoryServiceImpl implements CategoryService {
         categorySave.setActivated(true);
         categorySave.setDeleted(false);
         return categoryRepository.save(categorySave);
-
     }
 
     @Override
@@ -67,14 +66,18 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryDto> getCategoriesAndSize() {
         List<CategoryDto> categories = categoryRepository.getCategoriesAndSize();
+        if(categories.isEmpty()){
+            throw new ResourceNotFoundException("Categories not found.");
+        }
         return categories;
     }
 
     @Override
     public Category findCategoryById(Long categoryId) {
-
         Category category = categoryRepository.findCategoryById(categoryId);
-        
+        if(category==null){
+            throw new ResourceNotFoundException("Category not found with ID-"+categoryId);
+        }
         return category;
     }
 

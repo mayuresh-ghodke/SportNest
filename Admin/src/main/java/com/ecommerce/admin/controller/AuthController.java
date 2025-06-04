@@ -6,9 +6,11 @@ import com.ecommerce.library.service.AdminService;
 import com.ecommerce.library.service.CategoryService;
 import com.ecommerce.library.service.CustomerService;
 import com.ecommerce.library.service.OrderService;
+import com.ecommerce.library.service.OtpService;
 import com.ecommerce.library.service.ProductService;
 import com.ecommerce.library.service.SubCategoryService;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -22,10 +24,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
+
     private final AdminService adminService;
 
     private final BCryptPasswordEncoder passwordEncoder;
@@ -35,6 +40,7 @@ public class AuthController {
     private final SubCategoryService subCategoryService;
     private final CustomerService customerService;
     private final OrderService orderService;
+    private final OtpService otpService;
 
     
 
@@ -81,12 +87,6 @@ public class AuthController {
         return "register";
     }
 
-    @GetMapping("/forgot-password")
-    public String forgotPassword(Model model) {
-        model.addAttribute("title", "Forgot Password");
-        return "forgot-password";
-    }
-
     @PostMapping("/register-new")
     public String addNewAdmin(@Valid @ModelAttribute("adminDto") AdminDto adminDto,
                               BindingResult result,
@@ -123,5 +123,81 @@ public class AuthController {
         }
         return "register";
 
+    }
+
+    // forgot password logic
+
+    // Forgot Password:- 
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage(Model model){
+        model.addAttribute("title", "Forgot Password");
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgotPassword")
+    public String forgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes, HttpSession session){
+
+        Admin admin = adminService.findByUsername(email);
+        if(admin==null){
+            
+            redirectAttributes.addFlashAttribute("error", "Email is not registered with us.");
+            return "redirect:/forgot-password";
+        }
+
+        otpService.getOnGenerateAndSendOtp(email);
+        session.setAttribute("resetPasswordEmail", email);
+
+        return "redirect:/checkOtp";
+    }
+
+    @GetMapping("/checkOtp")
+    public String getCheckOtp(Model model, HttpSession session){
+        model.addAttribute("title", "Check OTP");
+        String sessionEmail = (String) session.getAttribute("resetPasswordEmail");
+        model.addAttribute("email", sessionEmail);
+        return "checkOtp";
+    }
+
+    @PostMapping("/verifyPasswordOtp")
+    public String verifyOtp(@RequestParam("email") String email,
+                            @RequestParam("otp") String enteredOtp,
+                            RedirectAttributes redirectAttributes, Model model) {
+
+        boolean isOtpValid = otpService.verifyOtp(enteredOtp); 
+
+        if (!isOtpValid) {
+            redirectAttributes.addFlashAttribute("error", "Invalid or expired OTP. Please try again.");
+            return "redirect:/forgot-password";
+        }
+        model.addAttribute("email", email);
+        return "redirect:/reset-password?email="+email;
+    }
+
+    @GetMapping("/reset-password")
+    public String getResetPassword(@RequestParam("email")String email, Model model, HttpSession session){
+        model.addAttribute("email", email);
+        // session.setAttribute("resetPasswordEmail", email);
+        model.addAttribute("title", "Reset Password");
+        return "reset-password";
+    }
+
+    @PostMapping("/createNewPassword")
+    public String createNewPassword(@RequestParam("newPassword") String newPassword, HttpSession session, RedirectAttributes redirectAttributes){
+
+
+        String email = (String) session.getAttribute("resetPasswordEmail");
+        Admin admin = adminService.findByUsername(email);
+
+        if(admin==null){
+            redirectAttributes.addFlashAttribute("error", "Error occured. Password not reset.");
+            return "redirect:/forgot-password";
+        }
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        AdminDto adminDto = new AdminDto();
+        adminDto.setPassword(admin.getPassword());
+        adminService.save(adminDto);
+
+        redirectAttributes.addFlashAttribute("success", "Password reseted successfully.");
+        return "redirect:/admin/login";
     }
 }

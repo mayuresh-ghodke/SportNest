@@ -4,11 +4,14 @@ import com.ecommerce.library.model.Customer;
 import com.ecommerce.library.model.DeliveryPerson;
 import com.ecommerce.library.model.Order;
 import com.ecommerce.library.model.OrderDetail;
+import com.ecommerce.library.model.OrderStatus;
 import com.ecommerce.library.model.Product;
-import com.ecommerce.library.repository.OrderDetailRepository;
+import com.ecommerce.library.service.CustomerService;
 import com.ecommerce.library.service.DeliveryPersonService;
+import com.ecommerce.library.service.EmailSenderService;
 import com.ecommerce.library.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.awt.Color;
 
 import java.security.Principal;
@@ -35,22 +39,59 @@ import java.security.Principal;
 public class OrderController {
 
     private final OrderService orderService;
+
+    @Autowired
+    private final CustomerService customerService;
+
     private final DeliveryPersonService deliveryPersonService;
-    private final OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private final EmailSenderService emailSenderService;
 
     @GetMapping("/orders")
-    public String getAll(Model model, Principal principal) {
+    public String getAll(Model model, Principal principal, @RequestParam(required = false) OrderStatus status) {
+
         if (principal == null) {
             return "redirect:/login";
         } 
+
         else{
             List<Order> orderList = orderService.findALlOrders();
             List<DeliveryPerson> deliveryPersons = deliveryPersonService.getAllDeliveryPersons();
+
+            if (status != null) {
+                orderList = orderList.stream()
+                        .filter(order -> order.getOrderStatus().equals(status))
+                        .collect(Collectors.toList());
+            }
+
             model.addAttribute("deliveryPersons", deliveryPersons);
             model.addAttribute("orders", orderList);
             model.addAttribute("title", "Manage Orders");
+            model.addAttribute("allStatuses", OrderStatus.values());
+            model.addAttribute("totalOrders", orderList.size());
+            model.addAttribute("allOrders", orderService.findALlOrders().size());
             return "orders";
         }
+    }
+
+    @GetMapping("/orders/status")
+    public String viewOrders(@RequestParam(required = false) OrderStatus status, Model model) {
+        List<Order> orders;
+        List<Order> filteredOrders = new ArrayList<Order>();
+        if (status != null) {
+            orders = orderService.findALlOrders();
+
+            filteredOrders = orders.stream()
+            .filter(order->order.getOrderStatus().equals(status))
+            .collect(Collectors.toList());
+        } else {
+            filteredOrders = orderService.findALlOrders();
+        }
+        model.addAttribute("orders", filteredOrders);
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("allStatuses", OrderStatus.values());
+        return "redirect:/orders";
     }
 
     @RequestMapping(value = "/view-order/{id}", method = RequestMethod.GET)
@@ -59,9 +100,6 @@ public class OrderController {
             return "redirect:/login";
         }
         Order order = orderService.getOrderByOrderId(orderId);
-        if (order == null) {
-            return "redirect:/error"; 
-        }
         List<OrderDetail> orderDetailList = order.getOrderDetailList();
         Customer customer = order.getCustomer();
         DeliveryPerson deliveryPerson = order.getDeliveryPerson();
@@ -80,6 +118,7 @@ public class OrderController {
         model.addAttribute("orderDetailList", orderDetailList);
         model.addAttribute("totalItemCount", totalItemCount);
         model.addAttribute("deliveryPerson", deliveryPerson);
+         model.addAttribute("allStatuses", OrderStatus.values());
         model.addAttribute("hMapData", hMap);
         return "view-order";
     }
@@ -97,13 +136,27 @@ public class OrderController {
         DeliveryPerson deliveryPerson = deliveryPersonService.getDeliveryPerson(deliveryPersonId);
         Order order = orderService.getOrderByOrderId(id);
         order.setDeliveryPerson(deliveryPerson);
-
         orderService.assignDeliveryPerson(id, deliveryPerson);
 
-        List<Order> orderList = orderService.findALlOrders();
-            
-        List<DeliveryPerson> deliveryPersons = deliveryPersonService.getAllDeliveryPersons();
+        System.out.println(order.getDeliveryPerson().getFirstName());
 
+        String toEmail = order.getCustomer().getUsername();
+        String firstName = order.getCustomer().getFirstName();
+        String lastName = order.getCustomer().getLastName();
+
+        String subject = "Delivery Update: Your Order is On the Way!";
+        String body = "Dear " + firstName + " " + lastName + ",\n\n" +
+                "We are excited to let you know that your order (Order ID: " + id + ") has been assigned to a delivery person and will be on its way shortly.\n\n" +
+                "You will receive another notification once the order is out for delivery.\n\n" +
+                "Thank you for choosing our service. If you have any questions, feel free to contact our support team.\n\n" +
+                "Best regards,\n" +
+                "Customer Support Team";
+
+        emailSenderService.sendSimpleEmail(toEmail, subject, body);
+
+
+        List<Order> orderList = orderService.findALlOrders();
+        List<DeliveryPerson> deliveryPersons = deliveryPersonService.getAllDeliveryPersons();
         model.addAttribute("deliveryPersons", deliveryPersons);
         model.addAttribute("orders", orderList);
         model.addAttribute("title", "Manage Orders");
@@ -117,18 +170,53 @@ public class OrderController {
         } 
         else {
             orderService.acceptOrder(id);
+
+            Order order = orderService.getOrderByOrderId(id);
+            String toEmail = order.getCustomer().getUsername();
+            String firstName = order.getCustomer().getFirstName();
+            String lastName = order.getCustomer().getLastName();
+
+            String subject = "Your Order Has Been Accepted";
+            String body = "Dear " + firstName + " " + lastName + ",\n\n" +
+                    "We are pleased to inform you that your order (Order ID: " + id + ") has been successfully accepted and is now being processed.\n" +
+                    "You will receive further updates once your order has been shipped.\n\n" +
+                    "Thank you for shopping with us.\n" +
+                    "If you have any questions or need assistance, please feel free to contact our support team.\n\n" +
+                    "Best regards,\n" +
+                    "Customer Support Team";
+
+            emailSenderService.sendSimpleEmail(toEmail, subject, body);
+
             attributes.addFlashAttribute("success", "Order Accepted");
             return "redirect:/orders";
         }
     }
 
     @RequestMapping(value = "/cancel-order", method = {RequestMethod.PUT, RequestMethod.GET})
-    public String cancelOrder(Long id, Principal principal) {
+    public String cancelOrder(Long id, Principal principal, RedirectAttributes attributes) {
         if (principal == null) {
             return "redirect:/login";
         }
         else {
             orderService.cancelOrder(id);
+
+            Order order = orderService.getOrderByOrderId(id);
+            String toEmail = order.getCustomer().getUsername();
+            String firstName = order.getCustomer().getFirstName();
+            String lastName = order.getCustomer().getLastName();
+
+            String subject = "Your Order Has Been Cancelled";
+            String body = "Dear " + firstName + " " + lastName + ",\n\n" +
+                    "We would like to inform you that your recent order (Order ID: " + id + ") has been successfully cancelled.\n" +
+                    "The full amount will be refunded to your original payment method shortly.\n\n" +
+                    "We apologize for any inconvenience this may have caused.\n" +
+                    "If you have any questions or concerns, please do not hesitate to contact our support team.\n\n" +
+                    "Thank you for your understanding.\n\n" +
+                    "Best regards,\n" +
+                    "Customer Support Team";
+            emailSenderService.sendSimpleEmail(toEmail, subject, body);
+
+            attributes.addFlashAttribute("success", "Order has been cancelled.");
             return "redirect:/orders";
         }
     }
@@ -162,7 +250,4 @@ public class OrderController {
             e.printStackTrace();
         }
     }
-    
-
-
 }

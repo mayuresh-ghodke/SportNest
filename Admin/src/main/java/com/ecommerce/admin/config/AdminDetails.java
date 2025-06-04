@@ -1,7 +1,6 @@
 package com.ecommerce.admin.config;
 
 import com.ecommerce.library.model.Admin;
-import com.ecommerce.library.model.DeliveryPerson;
 import com.ecommerce.library.model.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

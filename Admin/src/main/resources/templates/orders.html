@@ -31,6 +31,30 @@
                                 <div class="col-md-2">
                                     <button id="generateExcel" class="btn btn-outline-success">Export To Excel</button>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="">
+                                        <form method="get" th:action="@{/orders}">
+                                            <div class="input-group">
+                                                <select name="status" class="form-select">
+                                                    <option value="">-- Filter by Status --</option>
+                                                    <option th:each="status : ${allStatuses}" 
+                                                            th:value="${status}" 
+                                                            th:text="${status}" 
+                                                            th:selected="${selectedStatus == status}">
+                                                    </option>
+                                                </select>
+                                                <button type="submit" class="btn btn-primary">Filter</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="bg-dark text-center" style="border-radius: 30px;">
+                                        <p class="text-white p-1">This: <span th:text="${totalOrders}"></span></h5>
+                                        |
+                                        <hp class="text-white p-1">All: <span th:text="${allOrders}"></span></h5>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <!-- Begin Page Content -->
@@ -82,7 +106,7 @@
                                         <td class="text-center"><span
                                                 class="badge bg-success text-white">[(${order.status})]</span>
                                         </td>
-                                        <td>
+                                        <!-- <td>
                                             <div th:if="${order.deliveryPerson != null}">
                                                 <span th:text="${order.deliveryPerson.firstName + ' ' + order.deliveryPerson.lastName}"></span><br>
                                                 <span th:text="${order.deliveryPerson.phoneNumber}"></span>
@@ -97,8 +121,8 @@
                                                 <button type="submit" class="btn btn-block mt-2" 
                                                     style="border:1px solid black; border-radius: 10px;">Assign</button>
                                             </form>
-                                        </td>
-                                        
+                                        </td> 
+
                                         <td>
                                             <button><a th:href="@{/view-order/{id}(id = ${order.id})}"
                                                 class="btn
@@ -109,6 +133,49 @@
                                             <a th:if="${order.accept} == false"
                                                 th:href="@{/accept-order(id = ${order.id})}"
                                                 class=" btn btn-secondary">Accept</a>
+                                        </td>
+                                        
+                                        -->
+                                        <!-- Delivery Person Assignment -->
+                                        <td>
+                                            <div th:if="${order.deliveryPerson != null}">
+                                                <span th:text="${order.deliveryPerson.firstName + ' ' + order.deliveryPerson.lastName}"></span><br>
+                                                <span th:text="${order.deliveryPerson.phoneNumber}"></span>
+                                            </div>
+
+                                            <!-- Only show if order is accepted and no delivery person is assigned -->
+                                            <form th:if="${order.accept == true and order.deliveryPerson == null}" 
+                                                th:action="@{/assign-delivery-person/{id}(id=${order.id})}" method="get">
+                                                <select id="delivery_person" name="delivery_person" class="form-control">
+                                                    <option value="">-SELECT-</option>
+                                                    <option th:each="dp : ${deliveryPersons}" th:if="${dp.isAvailable == true}" 
+                                                            th:value="${dp.id}" 
+                                                            th:text="${dp.firstName + ' ' + dp.lastName}" class="form-control">
+                                                    </option>
+                                                </select>
+                                                <button type="submit" class="btn btn-block mt-2" style="border:1px solid black; border-radius: 10px;">Assign</button>
+                                            </form>
+                                        </td>
+                                        
+                                        <!-- Action Buttons -->
+                                        <td>
+                                            <a th:href="@{/view-order/{id}(id = ${order.id})}" class="btn btn-info mb-1">View</a>
+
+                                            <!-- Show Accept & Cancel if not accepted and not yet assigned -->
+                                            <div th:if="${order.accept == false and order.deliveryPerson == null}">
+                                                <a th:href="@{/accept-order(id = ${order.id})}" class="btn btn-success mb-1">Accept</a>
+                                                <a th:href="@{/cancel-order(id = ${order.id})}" class="btn btn-danger">Cancel</a>
+                                            </div>
+
+                                            <!-- If accepted but not assigned, only allow cancel -->
+                                            <div th:if="${order.accept == true and order.deliveryPerson == null}">
+                                                <a th:href="@{/cancel-order(id = ${order.id})}" class="btn btn-danger">Cancel</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${orders.size() == 0}">
+                                        <td>
+                                            <span class="text-center">No orders found.</span>
                                         </td>
                                     </tr>
                                 </tbody>

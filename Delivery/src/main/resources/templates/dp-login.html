@@ -40,16 +40,16 @@
 </head>
 
 <body class="bg-primary">
-    <div class="container p-5">
+    <div class="container-fluid p-5">
         <!-- Outer Row -->
         <div class="row mt-5">
-            <!-- Here is login for Delivery Person -->
-            <div class="col-md-6 justify-content-right">
-                <div class="card login-card" th:fragment="dp-login">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="card">
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
-                        <div class="row">
-                            <div class="col-md-12">
+                        <div class="">
+                            <div class="">
                                 <div class="p-5">
                                     <div class="text-center">
                                         <h3 class=" mb-4">DELIVERY PERSON LOGIN</h3>
@@ -57,6 +57,19 @@
                                     <div th:if="${param.error}" class="alert alert-danger">
                                         Invalid username or password.
                                     </div>
+
+                                    <div class="mt-4">
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <span th:text="${success}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
                                     
                                     <form th:action="@{/delivery/do-login-delivery-person}" method="post">
                                         <div class="form-group">
@@ -76,11 +89,8 @@
                                     
                                     <hr>
                                     <div class="text-center">
-                                        <a th:href="@{/forgot-password}" href="forgot-password.html">Forgot Password
+                                        <a th:href="@{/forgot-password}">Forgot Password
                                             ?</a>
-                                    </div>
-                                    <div class="text-center">
-                                        <a th:href="@{/dp-register}" href="register.html">Create an Account</a>
                                     </div>
                                 </div>
                             </div>

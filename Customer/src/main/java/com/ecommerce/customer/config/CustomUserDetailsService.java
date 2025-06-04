@@ -11,19 +11,22 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.stream.Collectors;
 
-public class CustomerServiceConfig implements UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
+
     @Autowired
     private CustomerRepository customerRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Customer customer = customerRepository.findByUsername(username);
         if(customer == null){
-            throw new UsernameNotFoundException("Could not find username");
+            throw new UsernameNotFoundException("Username not found with name: "+username);
         }
-        return new User(customer.getUsername(),
-                customer.getPassword(),
-                customer.getRoles()
+        return 
+        new User(customer.getUsername(), customer.getPassword(), 
+            customer.getRoles()
                         .stream()
-                        .map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList()));
+                        .map(role -> new SimpleGrantedAuthority(role.getName()))
+                        .collect(Collectors.toList()));
     }
 }

@@ -35,8 +35,7 @@ public class DeliveryPersonServiceImpl implements DeliveryPersonService{
 
     @Override
     public DeliveryPerson updateDeliveryPerson(DeliveryPerson deliveryPerson) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateDeliveryPerson'");
+        return deliveryPersonRepository.save(deliveryPerson);
     }
 
     @Override

@@ -28,13 +28,18 @@ public class Customer {
     private String phoneNumber;
     private String address;
 
-    // @OneToOne(fetch = FetchType.EAGER)
-    // @JoinColumn(name = "name", referencedColumnName = "id")
-    // private City city;
-    // private String country;
+    /*FetchType.EAGER:
+    Whenever a Customer loads, all associated Roles are immediately loaded too.
+    
+    CascadeType.ALL:
+    Whenever we save user(Parent entity), role(Child) also saved.
+*/
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "customer_role", joinColumns = @JoinColumn(name = "customer_id", referencedColumnName = "customer_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id"))
+    @JoinTable(
+        name = "customer_role", 
+        joinColumns = @JoinColumn(name = "customer_id", referencedColumnName = "customer_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id")
+    )
     private Collection<Role> roles;
 
     @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
@@ -44,7 +49,6 @@ public class Customer {
     private List<Order> orders;
 
     public Customer() {
-        //this.country = "VN";
         this.cart = new ShoppingCart();
         this.orders = new ArrayList<>();
     }
@@ -58,8 +62,6 @@ public class Customer {
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
-                /*", address='" + address + '\''  +
-                ", country='" //+ country + '\'' +*/
                 ", roles=" + roles +
                 ", orders=" + orders.size() +
                 '}';

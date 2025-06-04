@@ -91,11 +91,10 @@ public class WishlistController {
         if (wishlist != null) {
             // Delete the item from the wishlist
             String message = wishlist.getProduct().getName()+" removed from wishlist.";
-            boolean result = wishlistService.deleteById(wishlist.getId());
+            wishlistService.deleteById(wishlist.getId());
             return ResponseEntity.ok().body(
                 "{\"message\": \"" + message + "\"}");
         } else {
-            // If the item is not found in the wishlist, return a not found response
             return ResponseEntity.notFound().build();
         }
     }

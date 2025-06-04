@@ -35,4 +35,6 @@ public interface OrderService {
 
     List<Order> getAllAcceptedOrders();
 
+    Order markOrderAsShipped(Long id);
+
 }

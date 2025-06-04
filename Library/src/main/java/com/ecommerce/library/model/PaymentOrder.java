@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "payment_order")
 public class PaymentOrder {
@@ -15,7 +17,7 @@ public class PaymentOrder {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long paymentOrderId;
 
-    //orderId is the order id of the razorpay payement, that is receive from razorpay
+    //orderId is the order id of the razorpay payment, that is receive from razorpay
     private String orderId;
 
     private String amount;
@@ -28,6 +30,10 @@ public class PaymentOrder {
     private Customer customer;
 
     private String paymentId;
+
+    private LocalDateTime paymentCreatedAt;
+
+    private LocalDateTime paymentCompletedAt;
 
     //payment
 
@@ -102,5 +108,21 @@ public class PaymentOrder {
 
     public void setPaymentId(String paymentId) {
         this.paymentId = paymentId;
+    }
+
+    public LocalDateTime getPaymentCreatedAt() {
+        return paymentCreatedAt;
+    }
+
+    public void setPaymentCreatedAt(LocalDateTime paymentCreatedAt) {
+        this.paymentCreatedAt = paymentCreatedAt;
+    }
+
+    public LocalDateTime getPaymentCompletedAt() {
+        return paymentCompletedAt;
+    }
+
+    public void setPaymentCompletedAt(LocalDateTime paymentCompletedAt) {
+        this.paymentCompletedAt = paymentCompletedAt;
     }
 }

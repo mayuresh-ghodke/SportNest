@@ -21,13 +21,14 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 public class HomeController {
+
     @Autowired
     private final CustomerService customerService;
     private final CategoryService categoryService;
 
     @RequestMapping(value = {"/", "/index"}, method = RequestMethod.GET)
-    public String home(Model model, Principal principal, HttpSession session) {
-        model.addAttribute("title", "SPORTSHOP-AN ECOMMERCE PLATFORM");
+    public String homePage(Model model, Principal principal, HttpSession session) {
+        model.addAttribute("title", "SPORTNEST");
         model.addAttribute("page", "home");
         if (principal != null) {
             Customer customer = customerService.findByUsername(principal.getName());
@@ -37,7 +38,6 @@ public class HomeController {
                 session.setAttribute("totalItems", shoppingCart.getTotalItems());
             }
         }
-
         List<Category> categories = categoryService.findAllByActivatedTrue();
         model.addAttribute("categories", categories);
         return "home";

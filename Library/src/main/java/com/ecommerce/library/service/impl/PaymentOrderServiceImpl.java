@@ -6,6 +6,8 @@ import com.ecommerce.library.service.PaymentOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class PaymentOrderServiceImpl implements PaymentOrderService{
 
@@ -15,6 +17,11 @@ public class PaymentOrderServiceImpl implements PaymentOrderService{
     @Override
     public PaymentOrder save(PaymentOrder paymentOrder) {
         return paymentOrderRepository.save(paymentOrder);
+    }
+
+    @Override
+    public PaymentOrder findPaymentOrderByOrderId(String orderId) {
+        return paymentOrderRepository.findByOrderId(orderId);
     }
     
 }

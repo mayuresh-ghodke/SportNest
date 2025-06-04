@@ -38,6 +38,8 @@ public class ProductController {
 
     @GetMapping("/products")
     public String products(Model model, Principal principal) {
+        int totalProducts = productService.allProduct().size();
+        model.addAttribute("totalProducts", totalProducts);
         return paginatedProducts(1, model, principal);
     }
 
@@ -54,6 +56,8 @@ public class ProductController {
             subCategoryList = subCategoryService.getAllSubCategoriesByCategoryId(categoryDto.getId());
         }
 
+        int totalProducts = productService.allProduct().size();
+        model.addAttribute("totalProducts", totalProducts);
         model.addAttribute("title", "Manage Products");
         model.addAttribute("size", products.getSize());
         model.addAttribute("products", products);
@@ -116,12 +120,12 @@ public class ProductController {
         }
         List<Category> categories = categoryService.findAllByActivatedTrue();
         ProductDto productDto = productService.getById(id);
-        //SubCategory subCategory = productDto.getSubCategory();
+        SubCategory subCategory = productDto.getSubCategory();
 
         model.addAttribute("title", "Update Product");
         model.addAttribute("categories", categories);
         model.addAttribute("productDto", productDto);
-        //model.addAttribute("subCategory", subCategory);
+        model.addAttribute("subCategory", subCategory);
         return "update-product";
     }
 
@@ -187,6 +191,7 @@ public class ProductController {
         model.addAttribute("size", productDtos.size());
         model.addAttribute("subcategories", subcategories);
         model.addAttribute("category", category);
+        model.addAttribute("totalProducts", productService.allProduct().size());
         model.addAttribute("title","Manage Products");
         return "products";
     }
@@ -205,7 +210,7 @@ public class ProductController {
         model.addAttribute("size", products.size());
         model.addAttribute("subcategories", subcategories);
         model.addAttribute("title","Manage Products");
-
+        model.addAttribute("totalProducts", productService.allProduct().size());
         return "products";
     }
 }

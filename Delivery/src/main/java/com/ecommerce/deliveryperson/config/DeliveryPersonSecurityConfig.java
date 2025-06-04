@@ -37,7 +37,8 @@ public class DeliveryPersonSecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(author -> author
-                .requestMatchers("/dp-login").permitAll()
+                .requestMatchers("/dp-login","/forgot-password","/forgotPassword", "/checkOtp", 
+                "/verify-otp", "/verifyPasswordOtp","/reset-password", "/createNewPassword").permitAll()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // Allow static resources
                 .requestMatchers("/delivery/**").hasAuthority("DELIVERY_PERSON") // Secure delivery paths
                 .anyRequest().authenticated()

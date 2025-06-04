@@ -16,18 +16,14 @@ public class PincodeController {
     @PostMapping("/api-pincode/") // Remove the path variable
     public ResponseEntity<?> getPincodeDetails(@RequestParam("pincode") String pincode) { // Use @RequestParam instead of @PathVariable
         try {
-            System.out.println("Received pincode: " + pincode);
-            // Create RestTemplate instance
             RestTemplate restTemplate = new RestTemplate();
 
             // Make the HTTP request
             String apiUrl = "https://api.postalpincode.in/pincode/" + pincode;
             ResponseEntity<String> responseEntity = restTemplate.getForEntity(apiUrl, String.class);
 
-            System.out.println("Pincode 1: " + pincode);
             // Check if request was successful
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                // Simply return the response body as it is
                 return ResponseEntity.ok(responseEntity.getBody());
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

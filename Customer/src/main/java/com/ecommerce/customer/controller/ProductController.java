@@ -52,12 +52,9 @@ public class ProductController {
     @GetMapping("/shop-detail")
     public String shopDetail(Model model) {
         List<CategoryDto> categories = categoryService.getCategoriesAndSize();
-
         List<SubCategory> allSubCategories = new ArrayList<>();
-
         for (CategoryDto categoryDto : categories) {
             Long id = categoryDto.getId();
-
             List<SubCategory> subCategories = subCategoryService.getAllSubCategoriesByCategoryId(id);
             allSubCategories.addAll(subCategories);
         }
@@ -72,23 +69,6 @@ public class ProductController {
         model.addAttribute("subcategories", allSubCategories);
         return "shop-detail";
     }
-
-    // @GetMapping("/find-products/{id}")
-    // public String findByCategoryId(@PathVariable("id") Long id, Model model) {
-    // System.out.println("Entered into find-products");
-    // List<CategoryDto> categoryDtos = categoryService.getCategoriesAndSize();
-    // List<ProductDto> productDtos = productService.findByCategoryId(id);
-    // List<ProductDto> listView = productService.listViewProducts();
-
-    // model.addAttribute("productViews", listView);
-    // model.addAttribute("categories", categoryDtos);
-    // model.addAttribute("title", productDtos.get(0).getCategory().getName());
-    // model.addAttribute("page", "Product-Category");
-    // model.addAttribute("products", productDtos);
-    // System.out.println("Find by category id: " + productDtos + id);
-
-    // return "shop-detail";
-    // }
 
     @GetMapping("/find-products/{id}")
     public String findByCategoryId(@PathVariable("id") Long id, Model model) {
@@ -127,7 +107,7 @@ public class ProductController {
         model.addAttribute("subcategories", subCategoryList);
         model.addAttribute("page", "shop-detail");
         // model.addAttribute("products", productDtos);
-
+        model.addAttribute("title", "Products");
         return "shop-detail";
     }
 
@@ -145,7 +125,6 @@ public class ProductController {
     }
 
     // here integration review
-
     @GetMapping("/product-detail/{id}")
     public String details(@PathVariable("id") Long id, Model model) {
         ProductDto product = productService.getById(id);

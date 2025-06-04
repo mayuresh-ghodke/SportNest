@@ -9,65 +9,85 @@
 
 <header th:replace="~{fragments::main-header}"></header>
 
-<div class="">
-    <div class="container">
-        <div class="row mt-3 mb-3">
-            <div class="col-md-6"></div>
-            <div class="col-md-6 text-right">
-                <a href="@{/view-order-receipt/{id}(id=${order.id})}">View Receipt</a>
-            </div>
+<div class="container mt-4">
+
+    <!-- ✅ Conditionally display Success Message -->
+    <div th:if="${success}" class="alert alert-success text-center font-weight-bold shadow-sm" role="alert">
+        Dear <span th:text="${order.customer.firstName} + ' ' + ${order.customer.lastName}"></span>,
+        <span th:text="${success}"></span>
+    </div>
+
+    <!-- ✅ Conditionally display Error Message -->
+    <div th:if="${error}" class="alert alert-danger text-center font-weight-bold shadow-sm" role="alert">
+        <span th:text="${error}"></span> <!-- इथे तुमचा error message दिसेल -->
+    </div>
+
+    <!-- ✅ View Receipt Button -->
+    <div class="row mb-3" th:if="${order}">
+        <div class="col text-right">
+            <a class="btn btn-outline-primary" th:href="@{/view-order-receipt/{id}(id=${order.id})}">
+                View Receipt
+            </a>
         </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="mt-3">
-                    <table class="table table-bordered">
-                        <thead class="bg-dark text-white">
-                        <tr>
-                            <th>Images</th>
-                            <th>Product Name</th>
-                            <th>Price</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="orderdetail : ${order.orderDetailList}">
-                            <td class="">
-                                <a href="#">
-                                    <img class="img-fluid"
-                                         th:src="'data:image/jepg;base64,' + ${orderdetail.product.image}"
-                                         width="200px" height="250px" alt=""/>
-                                </a>
-                            </td>
-                            <td class="">
-                                <strong th:text="${orderdetail.product.name}"></strong>
-                            </td>
-                            <td class="">
-                                <strong th:text="'₹' + ${orderdetail.product.costPrice}"></strong>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <div class="row mt-3 mb-3 ">
-                        <div class="col-lg-8 col-sm-12"></div>
-                        <div class="col-lg-4 col-sm-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="font-weight-bold">Order summary</h3>
-                                </div>
-                                <div class="card-body p-3">
-                                    <strong class="">Total Quantity: [(${order.quantity})]</strong>
-                                    <br>
-                                    <strong class="d-flex">Sub Total<div class="ml-auto font-weight-bold" th:text="${order.totalPrice}"></div></strong>
-                                </div>
-                                <hr class="my-1">
-                            </div>
-                        </div>
-                    </div>
+    </div>
+
+    <!-- ✅ Order Table -->
+    <div class="card shadow-sm mb-4" th:if="${order}">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Ordered Items</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped m-0">
+                <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Image</th>
+                    <th scope="col">Product Name</th>
+                    <th scope="col">Unit Price</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- 'order.orderDetailList' उपलब्ध असेल तरच लूप चालेल -->
+                <tr th:each="orderdetail : ${order.orderDetailList}">
+                    <td>
+                        <img class="img-thumbnail"
+                             th:src="'data:image/jpeg;base64,' + ${orderdetail.product.image}"
+                             alt="Product Image" width="120" height="120">
+                    </td>
+                    <td>
+                        <span th:text="${orderdetail.product.name}" class="font-weight-bold text-dark"></span>
+                    </td>
+                    <td>
+                        <span class="text-success font-weight-bold" th:text="'₹' + ${orderdetail.product.costPrice}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ✅ Order Summary Card -->
+    <div class="row justify-content-end" th:if="${order}">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Total Quantity:</strong> <span th:text="${order.quantity}"></span>
+                    </p>
+                    <p class="mb-0 d-flex justify-content-between">
+                        <strong>Sub Total:</strong>
+                        <span class="font-weight-bold text-success" th:text="'₹' + ${order.totalPrice}"></span>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <footer th:replace="~{fragments::footer}"></footer>
+
 </body>
 </html>

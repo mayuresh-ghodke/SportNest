@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class CustomerDetails implements UserDetails {
+    
     private Customer customer;
 
     @Override

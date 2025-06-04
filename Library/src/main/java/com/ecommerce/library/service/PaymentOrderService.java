@@ -7,5 +7,6 @@ import org.springframework.stereotype.Service;
 public interface PaymentOrderService {
 
     PaymentOrder save(PaymentOrder paymentOrder);
-    
+
+    PaymentOrder findPaymentOrderByOrderId(String orderId);    
 }

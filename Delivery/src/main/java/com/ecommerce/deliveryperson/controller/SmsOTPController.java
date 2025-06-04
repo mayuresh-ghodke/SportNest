@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecommerce.library.model.Order;
 import com.ecommerce.library.service.OrderService;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
@@ -45,7 +44,7 @@ public class SmsOTPController {
     public ResponseEntity<String> sendOtpSms(@PathVariable("orderId") Long orderId) {
         try
         {
-            System.out.println("Send otp sms api called....");
+            //System.out.println("Send otp sms api called....");
             Twilio.init(accountSid, authToken);
 
             // use order to generate dynamic mobile number to send otp
@@ -58,40 +57,32 @@ public class SmsOTPController {
             Message.creator(
                     new PhoneNumber(toMobileNumber),
                     new PhoneNumber(phoneNumber),
-                    "Your OTP for order OrderID-"+orderId+" delivery confirmation is "+generatedOtp
+                    "Your OTP for order with OrderID-"+orderId+" for delivery confirmation is "+generatedOtp+"."
             ).create();
-
-            System.out.println("Message sent successfully...");
-
             return new ResponseEntity<>("Message sent successfully", HttpStatus.OK);
         } 
-        catch (Exception e)
-        {
+        catch (Exception e){
             e.printStackTrace();
             return new ResponseEntity<>("Failed to send message: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/verifyOtp/{orderId}/{otp}")
-    public ResponseEntity<?> verifyEnteredOtp(@PathVariable("otp") String otp, @PathVariable("orderId") String orderId) {
-        System.out.println("Verifying OTP for Order ID: " + orderId);
-
+    public ResponseEntity<?> verifyEnteredOtp(@PathVariable("otp") String otp,
+                                              @PathVariable("orderId") String orderId) {
         // Retrieve OTP from the map using the orderId
         String prevOtp = hMap.get(orderId);
-        System.out.println("Stored OTP: " + prevOtp);
+        //System.out.println("Stored OTP: " + prevOtp);
 
         // Check if the OTP is present for the given orderId
         if (prevOtp == null) {
-            System.out.println("OTP not found for Order ID: " + orderId);
             return new ResponseEntity<>("OTP is invalid", HttpStatus.UNAUTHORIZED);
         }
 
         // Compare the entered OTP with the stored OTP
         if (prevOtp.equals(otp)) {
-            System.out.println("OTP matched!");
-
+            //System.out.println("OTP matched!");
             hMap.remove(orderId); 
-
             orderService.updateDeliveryStatusOnDelivery(Long.parseLong(orderId), true);
             return new ResponseEntity<>("OTP has been verified", HttpStatus.OK);
         } 

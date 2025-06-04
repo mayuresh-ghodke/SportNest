@@ -69,7 +69,7 @@
     </style>
 </head>
 <body class="bg-light">
-    <div th:replace="~{fragments::optional}"></div>
+<!--    <div th:replace="~{fragments::optional}"></div>-->
     <div th:replace="~{fragments::main-top}"></div>
     <div th:replace="~{fragments::main-header}"></div>
 
@@ -84,8 +84,8 @@
                     <h1 class=" font-weight-bold mt-5">Shop for Sports Gear!</h1>
                 </div>
                 <div class="row p-5">
-                    <h3 class="font-weight-bold">Find everything you need for your favorite sports!
-                        <br>Shop high-quality authentic products from leading sports <br>brands.
+                    <h3 class="font-weight-bold" style="line-height: 1.8; font-size: 1.1rem;"><i>Find everything you need for your favorite sports!
+                        <br>Shop high-quality authentic products from leading sports <br>brands.</i>
                     </h3>
                 </div>
             </div>
@@ -105,7 +105,10 @@
                 <img src="images/bg-football.jpg" width="100%" height="600vh">
             </div>
             <div class="col-md-5">
-                <h5>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Omnis porro quos voluptatum soluta atque exercitationem, aut, mollitia, perspiciatis laboriosam provident pariatur! Ab soluta eum itaque, qui iusto impedit error officiis?</h5>
+                <p class="text-muted" style="line-height: 1.8; font-size: 1.1rem;">
+                    Step into your game with confidence! At <strong>SportNest</strong>, we offer a wide range of high-performance sports equipment built for champions. Whether you're training, competing, or just starting out — our gear is designed to help you win, safely and comfortably.
+                </p>
+
                 <a th:href="@{/menu}">
                     <button class="btn btn-lg btn-outline-primary mt-3 mb-3">Shop Now</button>
                 </a>
@@ -179,44 +182,52 @@
         <hr class="my-4">
         <div class="row">
             <div class="col-md-12 text-center">
-                <h1 class="font-weight-bold mb-3">Unleash Your Potential with High-Quality Sport Equipment</h1>
-                <p class="lead mb-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor ex dolore in perspiciatis. Ipsum eligendi doloremque accusamus ut quibusdam, modi tempora, iust.</p>
+                <h1 class="font-weight-bold mb-3">Unleash Your Potential with High-Quality Sports Equipment</h1>
+                <p class="lead mb-5">
+                    At <strong>SportNest</strong>, we believe in equipping athletes with top-notch gear that empowers peak performance, safety, and comfort. Whether you’re training, playing, or recovering — we’ve got the gear to take you further.
+                </p>
             </div>
         </div>
         <div class="row text-center">
+            <!-- Left Column -->
             <div class="col-md-4 mb-4">
                 <div class="feature">
                     <h4 class="font-weight-bold">Durable</h4>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                    <p>Made with high-quality materials to withstand intense training and frequent use — built for endurance.</p>
                 </div>
                 <div class="feature mt-4">
                     <h4 class="font-weight-bold">Performance Enhancing</h4>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                    <p>Boost your performance with gear designed to improve agility, strength, and speed during play.</p>
                 </div>
                 <div class="feature mt-4">
                     <h4 class="font-weight-bold">Premium Quality</h4>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                    <p>Each product is carefully selected and tested to meet international quality standards for athletes.</p>
                 </div>
             </div>
+
+            <!-- Center Image -->
             <div class="col-md-4 mb-4">
                 <img src="images/middle-home.jpg" class="img-fluid rounded shadow-sm" alt="Sport Equipment">
             </div>
+
+            <!-- Right Column -->
             <div class="col-md-4 mb-4">
                 <div class="feature">
                     <h4 class="font-weight-bold">Versatile Equipment</h4>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                    <p>From cricket to yoga, we offer multi-sport gear that adapts to your fitness needs and routines.</p>
                 </div>
                 <div class="feature mt-4">
                     <h4 class="font-weight-bold">Safety</h4>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                    <p>Designed with athlete safety in mind — reduce injury risk with protective, reliable equipment.</p>
                 </div>
                 <div class="feature mt-4">
                     <h4 class="font-weight-bold">Comfortable Designs</h4>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                    <p>Ergonomic and breathable designs ensure a snug fit and all-day comfort during training or matches.</p>
                 </div>
             </div>
         </div>
     </div>
+
     <footer>
         <div th:replace="~{fragments::footer}"></div>
     </footer>

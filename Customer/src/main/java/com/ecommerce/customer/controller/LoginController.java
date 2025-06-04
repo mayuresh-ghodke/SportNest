@@ -12,10 +12,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
 public class LoginController {
+    
     private final CustomerService customerService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailSenderService emailSenderService;
@@ -35,46 +37,56 @@ public class LoginController {
         return "register";
     }
 
-    @PostMapping("/do-register")
+    @PostMapping("/do-register") 
     public String registerCustomer(@Valid @ModelAttribute("customerDto") CustomerDto customerDto,
                                    BindingResult result,
-                                   Model model) {
+                                   RedirectAttributes redirectAttributes) {
         try {
             if (result.hasErrors()) {
-                model.addAttribute("customerDto", customerDto);
-                model.addAttribute("page", "register");
-                model.addAttribute("title", "Registreation Failed");
-                return "register";
+                redirectAttributes.addFlashAttribute("customerDto", customerDto);
+                redirectAttributes.addFlashAttribute("page", "register");
+                redirectAttributes.addFlashAttribute("title", "Registreation Failed");
+                return "redirect:/register";
             }
             String username = customerDto.getUsername();
             Customer customer = customerService.findByUsername(username);
+
             if (customer != null) {
-                model.addAttribute("customerDto", customerDto);
-                model.addAttribute("error", "Email has been register!");
-                return "register";
+                redirectAttributes.addFlashAttribute("customerDto", customerDto);
+                redirectAttributes.addFlashAttribute("error", "Email has been already registered.");
+                return "redirect:/register";
             }
             if (customerDto.getPassword().equals(customerDto.getConfirmPassword())) {
                 customerDto.setPassword(passwordEncoder.encode(customerDto.getPassword()));
+                if(customerDto.getPassword().length()<6){
+                    redirectAttributes.addFlashAttribute("customerDto", customerDto);
+                    redirectAttributes.addFlashAttribute("error", "Password length must have 6 length.");
+                    return "redirect:/register";
+                }
                 Customer registeredCustomer = customerService.save(customerDto);
 
-                String subject = "Registration at SPORT SHOP";
+                String subject = "Welcome to SportNest - Registration Successful!";
                 String toEmail = registeredCustomer.getUsername();
-                String body = "Dear Mr./Mrs. "+registeredCustomer.getFirstName()+" "+registeredCustomer.getLastName()+
-                " you have been successfully registered with us. Be happy, Continue shopping.";
+                String body = "Dear " + registeredCustomer.getFirstName() + " " + registeredCustomer.getLastName() + ",\n\n"
+            + "Welcome to Sport Shop!\n\n"
+            + "You have been successfully registered with us. We're thrilled to have you on board.\n"
+            + "Start exploring our wide range of sports equipment and enjoy a seamless shopping experience.\n\n"
+            + "Happy Shopping!\n"
+            + "Team SportNest Shop";
 
                 emailSenderService.sendSimpleEmail(toEmail, body, subject);
-
-
-                model.addAttribute("success", "Registered successfully!");
-            } else {
-                model.addAttribute("error", "Password and Confirm Password must be same.");
-                model.addAttribute("customerDto", customerDto);
-                return "register";
+                redirectAttributes.addFlashAttribute("success", "Registration successful! A confirmation email has been sent to your registered email address.");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            model.addAttribute("error", "Something went wrong on server, Plase try again later!");
+            else {
+                redirectAttributes.addFlashAttribute("error", "Password and confirm password must be same..");
+                redirectAttributes.addFlashAttribute("customerDto", customerDto);
+                return "redirect:/register";
+            }
         }
-        return "register";
+        catch (Exception e) {
+            redirectAttributes.addFlashAttribute("customerDto", customerDto);
+            redirectAttributes.addFlashAttribute("error", "Something went wrong. Please try again later...");
+        }
+        return "redirect:/register";
     }
 }

@@ -1,169 +1,168 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="https://www.thymeleaf.org/">
-<!-- Basic -->
-
-<head th:replace="~{fragments::head}"></head>
+<head th:replace="~{fragments::head}">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .receipt {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 30px;
+        }
+        .receipt h3 {
+            font-weight: 700;
+            color: #28a745;
+        }
+        .receipt h5 {
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        .receipt strong {
+            color: #343a40;
+        }
+        .receipt .card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .receipt table th {
+            background-color: #343a40;
+            color: white;
+        }
+        .receipt table td, .receipt table th {
+            vertical-align: middle;
+        }
+        .receipt .badge-status {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+        }
+        .receipt-footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
 
 <body>
-    <!-- Start Main Top -->
-    <div th:replace="~{fragments::main-top}">
+<div th:replace="~{fragments::main-top}"></div>
+<header th:replace="~{fragments::main-header}"></header>
+
+<div class="container my-5">
+    <div class="receipt shadow-lg p-3" id="receipt">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h3 class="mt-2">Order Receipt</h3>
+            <p class="text-muted">Thank you for shopping with <strong>SPORTNEST</strong>!</p>
+        </div>
+
+        <!-- Order Info -->
+        <h5 class="text-success">Order Summary</h5>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <p><strong>Order ID:</strong> <span th:text="${orders.id}"></span></p>
+                <p><strong>Date:</strong> <span th:text="${orders.orderDate}"></span></p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Payment Method:</strong> <span th:text="${orders.paymentMethod}"></span></p>
+                <p>
+                    <strong>Status:</strong>
+                    <span class="badge badge-status"
+                          th:classappend="${orders.isDelivered} ? 'badge-success' : 'badge-warning'"
+                          th:text="${orders.isDelivered ? 'Delivered' : orders.orderStatus}"></span>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Payment ID:</strong> <span th:text="${orders.paymentId}"></span></p>
+                <p><strong>Payment Status:</strong>
+                    <span class="text-uppercase font-weight-bold" th:text="${orders.status}"></span></p>
+                <p class="text-muted" id="printDate"></p>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                Customer & Shipping Information
+            </div>
+            <div class="card-body row">
+                <div class="col-md-6">
+                    <h6>Customer</h6>
+                    <p>
+                        <span th:text="${customer.firstName}"></span>
+                        <span th:text="${customer.lastName}"></span><br>
+                        <small th:text="${customer.username}"></small>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Shipping Address</h6>
+                    <p>
+                        <span th:text="${address.street}"></span>,
+                        <span th:text="${address.city}"></span>,
+                        <span th:text="${address.pincode}"></span><br>
+                        <span th:text="${address.state}"></span><br>
+                        <span th:text="${address.country}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <h5 class="text-success">Ordered Products</h5>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right">Price</th>
+                        <th class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="product, index : ${productsList}">
+                        <td th:text="${product.name}"></td>
+                        <td class="text-right" th:text="${orderDetailsList[0][__${index.index}__].productQuantity}"></td>
+                        <td class="text-right">₹<span th:text="${product.costPrice}"></span></td>
+                        <td class="text-right">
+                            ₹<span th:text="${orderDetailsList[0][__${index.index}__].productQuantity * product.costPrice}"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"><strong>Total Amount</strong></td>
+                        <td class="text-right text-success font-weight-bold">₹<span th:text="${orders.totalPrice}"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <!-- End Main Top -->
 
+    <!-- Download Button -->
+    <div class="text-center mt-3">
+        <button onclick="downloadReceipt()" class="btn btn-success btn-lg">Download PDF</button>
+    </div>
+</div>
 
-    <!-- Start Main Top -->
-    <header th:replace="~{fragments::main-header}"></header>
-    <!-- End Main Top -->
-    </head>
+<footer th:replace="~{fragments::footer}"></footer>
 
-    <head>
-        <style>
-            input,
-            textarea {
-                width: 100%;
-                padding: 8px;
-                margin-bottom: 16px;
-                border: 1px solid #ccc;
-                box-sizing: border-box;
-            }
-        </style>
-    </head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function downloadReceipt() {
+        const element = document.getElementById("receipt");
+        const opt = {
+            margin: 0.4,
+            filename: 'order_receipt.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3, scrollY: 0 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
 
-    <body>
-        <div class="container">
-            <div class="" style="display: none;">
-                <div class="row mt-3 ml-3">
-                    <h4 class="text-right">SPORT SHOP</h4>
-                </div>
-                <div class="row mt-1 ml-3">
-                    <h6 class="text-right">Contact:+91 7559201990</h6>
-                </div>
-                <div class="row mt-1 ml-3">
-                    <h6 class="text-right">Email: ghodkemayuresh86@gmail.com</h6>
-                </div>
-                <hr>
-            </div>
-            
-            <div class="row mt-3 ml-3">
-                <h4>Order Information</h4>
-            </div>
-            <div class="row">
-                <div class="col-md-10 md-offset-3 p-3">
-                    <div class="receipt" id="receipt">
-                        <div class="card">
-                            <div class="card-header bg-white p-1">
-                                <h6 class="ml-3">Order Details</h6>
-                            </div>
-                            <div class="card-body p-1">
-                                <div class="row ml-1">
-                                    <div class="col-6">
-                                        <strong>ORDER ID: </strong><span th:text="${orders.id}"></span><br>
-                                        <strong>DATE ADDED: </strong><span th:text="${orders.orderDate}"></span>
-                                    </div>
-                                    <div class="col-6">
-                                        <strong>PAYMENT MODE: </strong><span
-                                            th:text="${orders.paymentMethod}"></span><br>
-                                        <strong>ORDER STATUS: </strong><span th:text="${orders.orderStatus}" th:if="${orders.isDelivered==false}"></span>
-                                        <span th:if="${orders.isDelivered==true}">Delivered on </span>
-                                        <span th:if="${orders.isDelivered==true}" th:text="${orders.deliveryDate}"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card mt-4">
-                            <div class="card-header bg-white p-1">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <h6 class="ml-3 font-weight-bold">Customer Information</h6>
-                                    </div>
-                                    <div class="col-6">
-                                        <h6 class="ml-3 font-weight-bold">Shipping Address</h6>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-1">
-                                <div class="row ml-1">
-                                    <div class="col-6">
-                                        <span th:text="${customer.firstName}"></span> <span
-                                            th:text="${customer.lastName}"></span><br>
-                                        <span th:text="${customer.username}"></span>
-                                    </div>
-                                    <div class="col-6">
-                                        <span th:text="${address.street}"></span>, <span
-                                            th:text="${address.city}"></span>
-                                        <span th:text="${address.pincode}"></span><br>
-                                        <span th:text="${address.state}"></span><br>
-                                        <span th:text="${address.country}">.</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="">
-                                <table class="mt-2 table table-bordered">
-                                    <thead class="p-1">
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Quantity</th>
-                                            <th>Price</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr th:each="product, index : ${productsList}">
-                                            <td><span th:text="${product.name}"></span></td>
-                                            <!-- Used the iteration status variable to access the current index -->
-                                            <td class="text-right"><span
-                                                    th:text="${orderDetailsList[0][__${index.index}__].productQuantity}"></span>
-                                            </td>
-                                            <td class="text-right">₹<span th:text="${product.costPrice}"></span></td>
-                                            <!-- Calculated the total price for each product -->
-                                            <td class="text-right">₹<span
-                                                    th:text="${orderDetailsList[0][__${index.index}__].productQuantity * product.costPrice}"></span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="3"><strong>Total</strong></td>
-                                            <td class="text-right"><strong>₹</strong><strong
-                                                    th:text="${orders.totalPrice}"></strong></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="p-1">
-                                <strong>Payment ID &nbsp;&nbsp;&nbsp;: <span th:text="${orders.paymentId}"></span></strong><br>
-                                <strong>Payment Status: <span class="text-uppercase" th:text="${orders.status}"></span></strong>
-                                <div class="text-right" id="printDate"></div>                               
-                            </div>
+    // Optional: Add print date
+    document.getElementById("printDate").innerText = "Printed on: " + new Date().toLocaleString();
+</script>
 
-                        </div>
-                        <div class="row mt-3 ml-1">
-                            <div class="text-center">
-                                <button class="btn btn-primary" onclick="printReceipt()">Print</button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-        </div>
-        </div>
-
-        <script type="text/javascript">
-            function printReceipt() {
-                // Hide the print button before printing
-                var printButton = document.querySelector('.btn-primary');
-                printButton.style.display = 'none';
-
-                // Print the receipt
-                window.print();
-
-                // Show the print button again after printing is done (optional)
-                printButton.style.display = 'block';
-            }
-
-        </script>
-    </body>
-
+</body>
 </html>

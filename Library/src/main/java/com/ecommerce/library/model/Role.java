@@ -18,7 +18,4 @@ public class Role {
     @Column(name = "role_id")
     private Long id;
     private String name;
-
-    @ManyToMany(mappedBy = "roles")
-    private List<DeliveryPerson> deliveryPersons;
 }

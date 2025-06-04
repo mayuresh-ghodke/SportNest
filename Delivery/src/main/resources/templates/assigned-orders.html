@@ -33,9 +33,6 @@
                                         <th>Order ID</th>
                                         <th>Ordered Date</th>
                                         <th>Ordered At</th>
-                                        <!-- <th>Customer Name</th> -->
-                                        <th>Shipping Address</th>
-                                        <!-- <th>Phone number</th> -->
                                         <th>Item Qty</th>
                                         <th>Status</th>
                                         <th>Total Price</th>
@@ -49,9 +46,6 @@
                                         <td th:text="${order.id}"></td>
                                         <td th:text="${#dates.format(order.orderDate, 'dd-MM-yyyy')}"></td>
                                         <td th:text="${#dates.format(order.orderDate, 'HH:mm')}"></td>
-                                        <!-- <td th:text="${order.customer.firstName + ' ' + order.customer.lastName}"></td> -->
-                                        <td th:text="${order.customer.address}"></td>
-                                        <!-- <td th:text="${order.customer.phoneNumber}"></td> -->
                                         <td th:text="${order.quantity}"></td>
                                         <td>
                                             <span
@@ -62,7 +56,6 @@
                                         <td th:text="${order.status.toUpperCase()}"></td>
                                         <td>
                                             <a th:href="@{'/view-order/' + ${order.id}}" class="btn btn-info">View</a>
-
                                         </td>
                                     </tr>
                                     <tr th:if="${assignedOrders.size() == 0}">

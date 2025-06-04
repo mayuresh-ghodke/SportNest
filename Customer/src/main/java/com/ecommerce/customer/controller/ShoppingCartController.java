@@ -1,7 +1,6 @@
 package com.ecommerce.customer.controller;
 
 import com.ecommerce.library.dto.ProductDto;
-import com.ecommerce.library.model.CartItem;
 import com.ecommerce.library.model.Customer;
 import com.ecommerce.library.model.ShoppingCart;
 import com.ecommerce.library.service.CustomerService;
@@ -19,7 +18,6 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 @Controller
 @RequiredArgsConstructor
 public class ShoppingCartController {
@@ -53,7 +51,8 @@ public class ShoppingCartController {
     }
 
     @PostMapping("/add-to-cart")
-    public String addItemToCart(@RequestParam("id") Long id,
+    public String addItemToCart(
+        @RequestParam("id") Long id,
         @RequestParam(value = "quantity", required = false, defaultValue = "1") int quantity,
         HttpServletRequest request, Model model, Principal principal, HttpSession session)
     {
@@ -67,32 +66,6 @@ public class ShoppingCartController {
         model.addAttribute("shoppingCart", shoppingCart);
         return "redirect:" + request.getHeader("Referer");
     }
-
-    // @PostMapping(value = "/update-cart", params = "action=update")
-    // public String updateCart(@RequestParam("id") String id,
-    //                          @RequestParam("quantity") int quantity,
-    //                          Model model,
-    //                          Principal principal,
-    //                          HttpSession session) {
-    //     if (principal == null) {
-    //         return "redirect:/login";
-    //     }
-    //     // Parse the productId from the string id
-    //     Long productId = Long.parseLong(id);
-    //     System.out.println("Product ID: " + productId); // Debugging output
-    
-    //     // Retrieve product details and update the shopping cart
-    //     ProductDto productDto = productService.getById(productId);
-    //     String username = principal.getName();
-    //     ShoppingCart shoppingCart = cartService.updateCart(productDto, quantity, username);
-    
-    //     // Add the shoppingCart object to the model
-    //     model.addAttribute("shoppingCart", shoppingCart);
-    //     session.setAttribute("totalItems", shoppingCart.getTotalItems());
-        
-    //     // Redirecting back to the cart page
-    //     return "redirect:/cart";
-    // }
 
     @PostMapping(value = "/update-cart", params = "action=update")
 @ResponseBody

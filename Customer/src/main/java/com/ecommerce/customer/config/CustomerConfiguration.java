@@ -20,7 +20,7 @@ public class CustomerConfiguration {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return new CustomerServiceConfig();
+        return new CustomUserDetailsService();
     }
 
     @Bean 
@@ -28,31 +28,30 @@ public class CustomerConfiguration {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder
-                = http.getSharedObject(AuthenticationManagerBuilder.class);
+        
+        AuthenticationManagerBuilder authenticationManagerBuilder = 
+                http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        authenticationManagerBuilder
-                .userDetailsService(userDetailsService())
-                .passwordEncoder(passwordEncoder());
+        authenticationManagerBuilder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
 
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
  
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests( author ->
-                        author.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                                .requestMatchers("/*", "/product-detail/**").permitAll()
-                                .requestMatchers("/shop/**", "/find-products/**","/products/**","/shop-detail/**","/cancel-order/**",
-                                "/write-review/**", "/view-order-receipt/**","/find-products-subcategory/**","/add-to-wishlist/**","/remove-from-wishlist/**","/update-review/**","/delete-review/**").permitAll()
+                .authorizeHttpRequests( auth ->
+                        auth.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                        
+                        .requestMatchers("/shop/payment/*").hasAuthority("CUSTOMER")
+                        .requestMatchers("/**", "/shop/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(login ->
                         login.loginPage("/login")
-                                .loginProcessingUrl("/do-login")
-                                .defaultSuccessUrl("/index", true)
-                                .permitAll()
+                             .loginProcessingUrl("/do-login")
+                             .defaultSuccessUrl("/index", true)
+                             .permitAll()
                 )
                 .logout(logout ->
                         logout.invalidateHttpSession(true)
@@ -62,11 +61,8 @@ public class CustomerConfiguration {
                                 .permitAll()
                 )
                 .authenticationManager(authenticationManager)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-                )
-        ;
+                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
+
         return http.build();
     }
-
 }

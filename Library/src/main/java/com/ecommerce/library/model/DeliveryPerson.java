@@ -29,7 +29,6 @@ public class DeliveryPerson {
     private String phoneNumber;
     private boolean isAvailable;
     
-
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "delivery_person_roles",
             joinColumns = @JoinColumn(name = "delivery_person_id", referencedColumnName = "delivery_person_id"),

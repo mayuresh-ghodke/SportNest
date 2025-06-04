@@ -17,48 +17,104 @@
         *{
             font-family:'Times New Roman', Times, serif;
         }
+        body {
+        background: linear-gradient(to right, #3700B3, #6200EA);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .card {
+        border: none;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(98, 0, 234, 0.25);
+        border-color: #6200EA;
+    }
+
+    .btn-primary {
+        background-color: #6200EA;
+        border-color: #6200EA;
+    }
+
+    .btn-primary:hover {
+        background-color: #5e00d6;
+        border-color: #5e00d6;
+    }
+
+    .alert {
+        font-size: 0.95rem;
+    }
+    .navbar-brand i {
+        color: #6200EA;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #6200EA;
+        color: white;
+        border-color: #6200EA;
+    }
     </style>
 </head>
 
 <body class="bg-light">
-    
-    <div th:replace="~{fragments::main-top}"></div>
 
-    <header th:replace="~{fragments::main-header}" ></header>
-
-    <div class="container">
-        <div class="row">
-            <div class="card bg-white offset-md-3 p-5 mt-5" style="height: 450px; width: 600px;";>
-                <div class="form">
-                    <h2 class="font-weight-bold text-center mb-2">Login</h2>
-                    <div th:if = "${param.error}" class="p-3 alert alert-danger text-center">
-                        Invalid username or password
-                    </div>
-                    <div th:if = "${param.logout}" class="p-3 alert alert-success text-center">
-                        You have been logged out!
-                    </div>
-                    <form th:action="@{/do-login}" method="post" class="login-form">
-                        <div class="form-group">
-                            <label class="font-weight-bold text-muted" >Username/Email</label>
-                            <input type="email"  id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" name="username" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="font-weight-bold text-muted">Password</label>
-                            <input type="password"  id="exampleInputPassword1" placeholder="Password" name="password" required>
-                            <a th:href="@{verify-otp}"><sub>Forgot Password?</sub></a>
-                        </div>
-
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-outline-primary btn-block">Login</button>
-                        </div>
-                        <div class="form-group text-center">
-                            <p>Don't have an account? <a  th:href="@{/register}">Register Now</a></p>
-                        </div>
-                    </form>
-                    
-                </div>
-            </div>
+    <!-- Top Navbar -->
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="navbar-brand fw-bold text-white font-weight-bold" th:href="@{/}" style="font-size: 28px;">
+                SportNest
+            </a>
+            <a th:href="@{/register}" class="btn btn-outline-light rounded-pill px-4 font-weight-bold"
+            style="border:5px solid white;">
+                Sign Up
+            </a>
         </div>
     </div>
+
+    <!-- Login Form Section -->
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 90vh;">
+        <div class="card shadow-lg p-4 bg-white rounded-4" style="width: 100%; max-width: 500px;">
+            <div class="text-center mb-4">
+                <h2 class="font-weight-bold text-primary">Welcome Back</h2>
+                <p class="text-muted">Please login to your account</p>
+            </div>
+
+            <!-- Error & Logout Messages -->
+            <div th:if="${param.error}" class="alert alert-danger text-center">
+                Invalid username or password
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success text-center">
+                You have been logged out!
+            </div>
+
+            <!-- Login Form -->
+            <form th:action="@{/do-login}" method="post" class="login-form">
+                <div class="form-group mb-3">
+                    <label class="text-muted font-weight-bold">Username / Email</label>
+                    <input type="email" name="username" class="form-control rounded-pill" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="text-muted font-weight-bold">Password</label>
+                    <input type="password" name="password" class="form-control rounded-pill" placeholder="Enter your password" required>
+                    <div class="text-right mt-2">
+                        <a th:href="@{/verify-otp}" class="small text-primary">Forgot Password?</a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-sm">Login</button>
+                </div>
+
+                <div class="form-group text-center mt-3">
+                    <p class="mb-0">Don't have an account?
+                        <a th:href="@{/register}" class="text-primary">Sign Up</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </body>
+
 </html>

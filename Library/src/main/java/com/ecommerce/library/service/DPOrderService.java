@@ -7,4 +7,6 @@ public interface DPOrderService {
     List<Order> getAllAssignedOrders(Long deliveryPersonId);
 
     List<Order> getAllDeliveredOrders(Long deliveryPersonId);
+
+    List<Order> getAllShippedOrders(Long id);
 }
