@@ -55,4 +55,4 @@ This project is a web-based application for managing a sports equipment shop, de
 
 **Database:** MySQL
 
-**Tools:** IntelliJ IDEA, VSC Code, Postman, GitHub, Docker
+**Tools:** IntelliJ IDEA, VS Code, Postman, GitHub, Docker
