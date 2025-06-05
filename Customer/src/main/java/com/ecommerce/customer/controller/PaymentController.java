@@ -47,7 +47,7 @@ public class PaymentController{
         double amount = Double.parseDouble(data.get("amount").toString()); // Parsing as double
 
 //here keys removed due to security purpose
-        var client = new RazorpayClient("rzp_", "QPkPg");
+        var client = new RazorpayClient("rzp_test_9NlQwnOUBr8xWJ", "QPkPgAbvVY5uKEX8XstWO9ld");
 
          // Generate a unique transaction ID with date, time, customerId
         LocalDateTime now = LocalDateTime.now();
